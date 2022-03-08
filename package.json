@@ -1,0 +1,16 @@
+{
+  "name": "vy2-be-voucher-traveloka",
+  "version": "1.0.0",
+  "description": "VY2 - Voucher Tranveloka",
+  "main": "index.js",
+  "repository": "git@github.com:whoant/vy2-be-voucher-traveloka.git",
+  "author": "whoant <vovanhoangtuan4.2@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}

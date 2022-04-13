@@ -8,12 +8,12 @@ module.exports = (sequelize) => {
             primaryKey: true,
             defaultValue: Sequelize.UUIDV4,
         },
-        user: {
+        username: {
             type: DataTypes.STRING,
             unique: true,
             allowNull: false,
         },
-        pass: {
+        password: {
             type: DataTypes.STRING,
             allowNull: false,
         },

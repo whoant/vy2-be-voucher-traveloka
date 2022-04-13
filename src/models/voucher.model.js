@@ -16,30 +16,25 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        discount: {
+        limitedUse: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: false
         },
-        limit: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        conditionalMoney: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        startDay: {
+        effectiveAt: {
             type: DataTypes.DATE,
             allowNull: false
         },
-        endDay: {
-            type: DataTypes.DATE,
+        voucherCode: {
+            type: DataTypes.STRING,
             allowNull: false
         },
-        typeVoucher: {
-            type: DataTypes.SMALLINT,
+        limitedAt: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        expirationAt: {
+            type: DataTypes.DATE,
             allowNull: false
         }
-
     });
 };

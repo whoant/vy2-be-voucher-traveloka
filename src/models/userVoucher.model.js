@@ -1,6 +1,4 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const UserModel = require('./user.model');
-const VoucherModel = require('./voucher.model');
 
 module.exports = (sequelize) => {
     return sequelize.define('UserVoucher', {
@@ -13,25 +11,15 @@ module.exports = (sequelize) => {
         state: {
             type: DataTypes.STRING(10),
             allowNull: false,
+            defaultValue: 'NOT_USE'
         },
         effectiveAt: {
             type: DataTypes.DATE,
             allowNull: false
         },
-        userId: {
-            type: DataTypes.UUID,
-            references: {
-                model: UserModel,
-                key: 'id'
-            }
-        },
-        voucherId: {
-            type: DataTypes.UUID,
-            references: {
-                model: VoucherModel,
-                key: 'id'
-            }
+        transactionId: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
-
     });
 };

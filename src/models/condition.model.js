@@ -9,21 +9,21 @@ module.exports = (sequelize) => {
             defaultValue: Sequelize.UUIDV4,
         },
         threshold: {
-            type: DataTypes.NUMBER,
+            type: DataTypes.BIGINT,
             allowNull: false,
             validate: {
                 isInt: true
             }
         },
         discount: {
-            type: DataTypes.NUMBER,
+            type: DataTypes.BIGINT,
             allowNull: false,
             validate: {
                 isInt: true
             }
         },
         maxAmount: {
-            type: DataTypes.NUMBER,
+            type: DataTypes.BIGINT,
             allowNull: false,
             validate: {
                 isInt: true

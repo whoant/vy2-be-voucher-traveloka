@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        limitedUse: {
+        limitUse: {
             type: DataTypes.INTEGER,
             allowNull: false
         },
@@ -28,9 +28,13 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-        limitedAt: {
+        limitDay: {
             type: DataTypes.INTEGER,
             allowNull: false
+        },
+        amount: {
+          type: DataTypes.BIGINT,
+          allowNull: false
         },
         expirationAt: {
             type: DataTypes.DATE,

@@ -9,7 +9,7 @@ module.exports = (sequelize) => {
             defaultValue: Sequelize.UUIDV4,
         },
         userId: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             unique: true,
             allowNull: false,
         },
@@ -20,6 +20,9 @@ module.exports = (sequelize) => {
         email: {
             type: DataTypes.STRING,
             allowNull: false,
+            validate: {
+                isEmail: true
+            }
         },
     });
 };

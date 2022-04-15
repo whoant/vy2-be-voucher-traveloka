@@ -1,5 +1,7 @@
 const expressLoader = require('./express');
+const sqlserverLoader = require('./sqlserver');
 
-module.exports = expressApp => {
+module.exports = async expressApp => {
     expressLoader(expressApp);
+    await sqlserverLoader();
 };

@@ -9,17 +9,17 @@ module.exports = (sequelize) => {
             defaultValue: Sequelize.UUIDV4,
         },
         state: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(10),
             allowNull: false,
+            defaultValue: 'NOT_USE'
         },
-        startDay: {
+        effectiveAt: {
             type: DataTypes.DATE,
             allowNull: false
         },
-        endDay: {
-            type: DataTypes.DATE,
+        transactionId: {
+            type: DataTypes.STRING,
             allowNull: false
         }
-
     });
 };

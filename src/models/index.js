@@ -1,37 +1,68 @@
-'use strict';
+const { Sequelize } = require('sequelize');
+const { DB_URI } = require('../config');
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/database.json')[env];
-const db = {};
+const UserModel = require('./user.model');
+const VoucherModel = require('./voucher.model');
+const PartnerModel = require('./partner.model');
+const UserVoucherModel = require('./userVoucher.model');
+const VarModel = require('./var.model');
+const ConditionModel = require('./condition.model');
+const PaymentModel = require('./payment.model');
 
-let sequelize;
-if (config.use_env_variable) {
-    sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-    sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
+const sequelize = new Sequelize(DB_URI);
 
-fs
-    .readdirSync(__dirname)
-    .filter(file => {
-        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
-    })
-    .forEach(file => {
-        const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-        db[model.name] = model;
-    });
+const User = UserModel(sequelize);
+const Voucher = VoucherModel(sequelize);
+const Partner = PartnerModel(sequelize);
+const UserVoucher = UserVoucherModel(sequelize);
+const Condition = ConditionModel(sequelize);
+const Var = VarModel(sequelize);
+const Payment = PaymentModel(sequelize);
 
-Object.keys(db).forEach(modelName => {
-    if (db[modelName].associate) {
-        db[modelName].associate(db);
-    }
+
+Partner.hasMany(Voucher, {
+    foreignKey: 'partnerId'
 });
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
+Voucher.belongsTo(Partner, {
+    foreignKey: 'partnerId'
+});
 
-module.exports = db;
+Voucher.hasOne(Condition, {
+    foreignKey: 'voucherId'
+});
+
+Condition.belongsTo(Voucher, {
+    foreignKey: 'voucherId'
+});
+
+User.belongsToMany(Voucher, {
+    through: UserVoucher,
+    foreignKey: 'userId',
+    otherKey: 'voucherId'
+});
+
+Voucher.belongsToMany(User, {
+    through: UserVoucher,
+    foreignKey: 'voucherId',
+    otherKey: 'userId'
+});
+
+UserVoucher.hasOne(Payment, {
+    foreignKey: 'userVoucherId'
+});
+
+Payment.belongsTo(UserVoucher, {
+    foreignKey: 'userVoucherId'
+});
+
+module.exports = {
+    User,
+    Voucher,
+    Partner,
+    UserVoucher,
+    Var,
+    Condition,
+    Payment,
+    sequelize
+};

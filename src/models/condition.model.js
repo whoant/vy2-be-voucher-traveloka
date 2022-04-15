@@ -8,18 +8,31 @@ module.exports = (sequelize) => {
             primaryKey: true,
             defaultValue: Sequelize.UUIDV4,
         },
-        username: {
-            type: DataTypes.STRING,
-            unique: true,
+        threshold: {
+            type: DataTypes.NUMBER,
             allowNull: false,
+            validate: {
+                isInt: true
+            }
         },
-        password: {
-            type: DataTypes.STRING,
+        discount: {
+            type: DataTypes.NUMBER,
             allowNull: false,
+            validate: {
+                isInt: true
+            }
         },
-        secretKey: {
-            type: DataTypes.STRING,
+        maxAmount: {
+            type: DataTypes.NUMBER,
             allowNull: false,
+            validate: {
+                isInt: true
+            }
+        },
+        typeDiscount: {
+            type: DataTypes.STRING(10),
+            allowNull: false,
+            defaultValue: 'PERCENT'
         },
     });
 };

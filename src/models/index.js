@@ -109,5 +109,8 @@ module.exports = {
     Condition,
     Payment,
     DetailUserVoucher,
+    GiftCard,
+    UserGiftCard,
+    DetailUserGiftCard,
     sequelize
 };

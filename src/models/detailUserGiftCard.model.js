@@ -16,10 +16,16 @@ module.exports = (sequelize) => {
         amount: {
             type: DataTypes.BIGINT,
             allowNull: false,
+            validate: {
+                isInt: true
+            }
         },
         amountAfter: {
             type: DataTypes.BIGINT,
             allowNull: false,
+            validate: {
+                isInt: true
+            }
         },
     });
 };

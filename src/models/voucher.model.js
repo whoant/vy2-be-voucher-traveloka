@@ -18,11 +18,15 @@ module.exports = (sequelize) => {
         },
         limitUse: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
+            validate: {
+                isInt: true
+            }
         },
         effectiveAt: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: false,
+            defaultValue: DataTypes.NOW
         },
         voucherCode: {
             type: DataTypes.STRING,
@@ -31,11 +35,17 @@ module.exports = (sequelize) => {
         },
         limitDay: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
+            validate: {
+                isInt: true
+            }
         },
         amount: {
             type: DataTypes.BIGINT,
-            allowNull: false
+            allowNull: false,
+            validate: {
+                isInt: true
+            }
         },
         expirationAt: {
             type: DataTypes.DATE,

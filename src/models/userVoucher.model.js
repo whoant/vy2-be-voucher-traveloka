@@ -15,11 +15,8 @@ module.exports = (sequelize) => {
         },
         effectiveAt: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: false,
+            defaultValue: DataTypes.NOW
         },
-        transactionId: {
-            type: DataTypes.STRING,
-            allowNull: false
-        }
     });
 };

@@ -22,7 +22,8 @@ module.exports = (sequelize) => {
         },
         effectiveAt: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: false,
+            defaultValue: DataTypes.NOW
         },
         giftCardCode: {
             type: DataTypes.STRING,

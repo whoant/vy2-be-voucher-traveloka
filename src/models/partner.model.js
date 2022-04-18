@@ -30,6 +30,9 @@ module.exports = (sequelize) => {
 		hooks: {
 			beforeCreate(record, options) {
 				record.dataValues.password = sha256(record.dataValues.password);
+			},
+			beforeFind(options) {
+				options.where.password = sha256(options.where.password);
 			}
 		}
 	});

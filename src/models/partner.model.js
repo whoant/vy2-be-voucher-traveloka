@@ -32,7 +32,8 @@ module.exports = (sequelize) => {
 				record.dataValues.password = sha256(record.dataValues.password);
 			},
 			beforeFind(options) {
-				options.where.password = sha256(options.where.password);
+				if (options.where?.password)
+					options.where.password = sha256(options.where.password);
 			}
 		}
 	});

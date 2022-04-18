@@ -1,4 +1,5 @@
 const { formatMoney } = require("../../helpers/utilities.helper");
+const { Voucher, Condition } = require("../../models");
 
 class PartnerService {
 
@@ -6,25 +7,35 @@ class PartnerService {
 		this.partner = partner;
 	}
 
-	async getVouchers() {
-		const vouchers = await this.partner.getVouchers();
-		const conditions = await Promise.all(vouchers.map(voucher => {
-			return voucher.getCondition();
-		}));
+	getPartnerId() {
+		return this.partner.dataValues.id;
+	}
 
-		const voucherConditon = [];
-		vouchers.forEach((voucher, position) => {
-			if (conditions[position] === null) return;
-			voucherConditon.push({
-				...voucher.dataValues,
-				message: this.combineMessage(conditions[position].dataValues),
-				condition: {
-					...conditions[position].dataValues
-				}
-			});
+	async getVouchers() {
+		const partnerId = this.getPartnerId();
+		const vouchers = await Voucher.findAll({
+			where: {
+				partnerId,
+			},
+			include: {
+				model: Condition,
+				attributes: ['threshold', 'discount', 'maxAmount']
+			},
+			attributes: {
+				exclude: ['createdAt', 'updatedAt', 'partnerId']
+			},
+			raw: true,
+			nest: true
 		});
 
-		return voucherConditon;
+		const listVoucher = vouchers.map(voucher => {
+			return {
+				...voucher,
+				description: this.combineDescription(voucher.Condition)
+			}
+		});
+
+		return listVoucher;
 	}
 
 	async createVoucher(voucher) {
@@ -34,7 +45,7 @@ class PartnerService {
 	}
 
 
-	combineMessage(condition) {
+	combineDescription(condition) {
 		const { threshold, discount, maxAmount } = condition;
 		const formatThreshold = formatMoney(threshold);
 		const formatMaxAmount = formatMoney(maxAmount);

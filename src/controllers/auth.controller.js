@@ -5,7 +5,6 @@ const { Partner } = require("../models");
 
 exports.login = catchAsync(async (req, res) => {
 	const { username, password } = req.body;
-
 	const partner = await Partner.findOne({
 		where: {
 			username, password
@@ -14,6 +13,7 @@ exports.login = catchAsync(async (req, res) => {
 
 	if (!partner) throw new AppError('Partner không tồn tại !');
 	const token = await generateToken(partner.id);
+
 	res.json({
 		status: 'success',
 		message: 'Đăng nhập thành công !',
@@ -26,8 +26,6 @@ exports.login = catchAsync(async (req, res) => {
 exports.createPartner = catchAsync(async (req, res) => {
 	const { username, password, secretKey } = req.body;
 	if (!secretKey) throw new AppError('Vui lòng kiểm tra lại tài khoản của mình !', 400);
-
-
 	await Partner.create({
 		username, password, secretKey
 	});
@@ -36,7 +34,5 @@ exports.createPartner = catchAsync(async (req, res) => {
 		status: 'success',
 		message: 'Tạo partner thành công !',
 	});
-
-
 });
 

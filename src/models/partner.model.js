@@ -21,7 +21,10 @@ module.exports = (sequelize) => {
 		secretKey: {
 			type: DataTypes.STRING,
 			allowNull: false,
-			unique: true
+			unique: {
+				args: true,
+				msg: 'Mã bí mật đã tồn tại !'
+			}
 		},
 	}, {
 		hooks: {

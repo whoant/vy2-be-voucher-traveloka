@@ -53,6 +53,7 @@ module.exports = (sequelize) => {
 		amount: {
 			type: DataTypes.BIGINT,
 			allowNull: false,
+			defaultValue: 0,
 			validate: {
 				isInt: {
 					args: true,

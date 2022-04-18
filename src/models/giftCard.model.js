@@ -54,8 +54,8 @@ module.exports = (sequelize) => {
 			allowNull: false
 		},
 		typeGift: {
-			type: DataTypes.STRING(10),
-			allowNull: false,
+			type: DataTypes.ENUM,
+			values: ['PERCENT', 'MONEY'],
 			default: 'PERCENT'
 		},
 		discount: {

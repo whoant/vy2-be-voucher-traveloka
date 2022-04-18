@@ -44,7 +44,6 @@ class PartnerService {
 		return newVoucher.createCondition(voucher);
 	}
 
-
 	combineDescription(condition) {
 		const { threshold, discount, maxAmount } = condition;
 		const formatThreshold = formatMoney(threshold);
@@ -54,8 +53,6 @@ class PartnerService {
 		}
 		return `Đơn hàng trị giá trên ${formatThreshold}đ sẽ nhận được giảm giá ${discount}%, không vượt quá ${formatMaxAmount}đ`;
 	}
-
 }
-
 
 module.exports = PartnerService;

@@ -44,6 +44,14 @@ class PartnerService {
 		return newVoucher.createCondition(voucher);
 	}
 
+	getGiftCards() {
+		return this.partner.getGiftCards();
+	}
+
+	createGiftCard(giftCard) {
+		return this.partner.createGiftCard(giftCard);
+	}
+
 	combineDescription(condition) {
 		const { threshold, discount, maxAmount } = condition;
 		const formatThreshold = formatMoney(threshold);

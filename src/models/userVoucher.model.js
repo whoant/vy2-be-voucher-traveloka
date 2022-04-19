@@ -18,7 +18,7 @@ module.exports = (sequelize) => {
 		},
 		state: {
 			type: DataTypes.ENUM,
-			values: [...STATE],
+			values: Object.values(STATE),
 			defaultValue: 'SPENDING'
 		},
 		refCode: {

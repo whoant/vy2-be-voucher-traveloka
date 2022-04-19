@@ -1,32 +1,38 @@
-const {generateToken} = require("../helpers/jwt.helper");
+const { generateToken } = require("../helpers/jwt.helper");
 const AppError = require('../helpers/appError.helper');
 const catchAsync = require('../helpers/catchAsync.helper');
+const { Partner } = require("../models");
 
 exports.login = catchAsync(async (req, res) => {
-    const {username, password} = req.body;
-    if (!username || !password) throw new AppError('Missing data', 400);
+	const { username, password } = req.body;
+	const partner = await Partner.findOne({
+		where: {
+			username, password
+		}
+	});
 
-    const token = await generateToken({username, password});
-    res.json({
-        status: 'success',
-        message: 'OKE',
-        data: {
-            token
-        }
-    });
+	if (!partner) throw new AppError('Partner không tồn tại !');
+	const token = await generateToken(partner.id);
+
+	res.json({
+		status: 'success',
+		message: 'Đăng nhập thành công !',
+		data: {
+			token
+		}
+	});
 });
 
-exports.register = catchAsync(async (req, res) => {
-    const {username, password} = req.body;
-    if (!username || !password) throw new AppError('Missing data', 400);
+exports.createPartner = catchAsync(async (req, res) => {
+	const { username, password, secretKey } = req.body;
+	if (!secretKey) throw new AppError('Vui lòng kiểm tra lại tài khoản của mình !', 400);
+	await Partner.create({
+		username, password, secretKey
+	});
 
-    const token = await generateToken({username, password});
-    res.json({
-        status: 'success',
-        message: 'OKE',
-        data: {
-            token
-        }
-    });
+	res.json({
+		status: 'success',
+		message: 'Tạo partner thành công !',
+	});
 });
 

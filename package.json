@@ -15,10 +15,12 @@
     "express": "^4.17.3",
     "helmet": "^5.0.2",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.3",
     "morgan": "^1.10.0",
     "sequelize": "^6.17.0",
     "stripe": "^8.215.0",
-    "tedious": "^14.4.0"
+    "tedious": "^14.4.0",
+    "yup": "^0.32.11"
   },
   "devDependencies": {
     "nodemon": "^2.0.15",

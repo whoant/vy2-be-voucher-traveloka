@@ -4,7 +4,7 @@ const router = express.Router();
 
 const giftCardMiddleware = require('../middlewares/giftCard.middleware');
 const authMiddleware = require('../middlewares/auth.middleware');
-const giftCardController = require('../controllers/giftCard.controller');
+const giftCardController = require('../controllers/partner/giftCard.controller');
 
 router.get('/', authMiddleware.selectUser('PARTNER'), giftCardController.getGiftCards);
 router.post('/', authMiddleware.selectUser('PARTNER'), giftCardMiddleware.validateGiftCard, giftCardController.createGiftCard);

@@ -1,4 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
+const { compareDate } = require("../helpers/utilities.helper");
 
 module.exports = (sequelize) => {
 	return sequelize.define('GiftCard', {
@@ -85,6 +86,12 @@ module.exports = (sequelize) => {
 				unique: true,
 				fields: ["giftCardCode"]
 			}
-		]
+		],
+		hooks: {
+			beforeCreate(attributes, options) {
+				const { effectiveAt, expirationAt } = attributes.dataValues;
+				if (!compareDate(effectiveAt, expirationAt)) throw new Error('Ngày hết hiệu lực phải lớn hơn ngày bắt đầu !');
+			}
+		}
 	});
 };

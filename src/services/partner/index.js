@@ -1,5 +1,5 @@
 const { formatMoney } = require("../../helpers/utilities.helper");
-const { Voucher, Condition } = require("../../models");
+const { Voucher, Condition, GiftCard } = require("../../models");
 
 class PartnerService {
 
@@ -28,14 +28,12 @@ class PartnerService {
 			nest: true
 		});
 
-		const listVoucher = vouchers.map(voucher => {
+		return vouchers.map(voucher => {
 			return {
 				...voucher,
-				description: this.combineDescription(voucher.Condition)
+				description: this.combineDescriptionVoucher(voucher.Condition)
 			}
 		});
-
-		return listVoucher;
 	}
 
 	async createVoucher(voucher) {
@@ -44,15 +42,31 @@ class PartnerService {
 		return newVoucher.createCondition(voucher);
 	}
 
-	getGiftCards() {
-		return this.partner.getGiftCards();
+	async getGiftCards() {
+		const giftCards = await GiftCard.findAll({
+			where: {
+				partnerId: this.getPartnerId(),
+			},
+			attributes: {
+				exclude: ['createdAt', 'updatedAt', 'partnerId']
+			},
+			raw: true,
+			nest: true
+		});
+
+		return giftCards.map(giftCard => {
+			return {
+				...giftCard,
+				description: this.combineDescriptionGiftCard(giftCard)
+			}
+		});
 	}
 
 	createGiftCard(giftCard) {
 		return this.partner.createGiftCard(giftCard);
 	}
 
-	combineDescription(condition) {
+	combineDescriptionVoucher(condition) {
 		const { threshold, discount, maxAmount } = condition;
 		const formatThreshold = formatMoney(threshold);
 		const formatMaxAmount = formatMoney(maxAmount);
@@ -60,6 +74,16 @@ class PartnerService {
 			return `Đơn hàng trị giá trên ${formatThreshold}đ sẽ nhận được giảm giá ${formatMaxAmount}đ`;
 		}
 		return `Đơn hàng trị giá trên ${formatThreshold}đ sẽ nhận được giảm giá ${discount}%, không vượt quá ${formatMaxAmount}đ`;
+	}
+
+	combineDescriptionGiftCard(giftCard) {
+		const { discount, typeGift } = giftCard;
+
+		if (typeGift === 'PERCENT') {
+			return `Đơn hàng sẽ được giảm giá ${discount}%`;
+		}
+
+		return `Đơn hàng sẽ được giảm giá ${formatMoney(discount)} đ`;
 	}
 }
 

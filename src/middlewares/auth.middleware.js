@@ -1,7 +1,7 @@
 const catchAsync = require('../helpers/catchAsync.helper');
 const { Partner, User } = require("../models");
 const AppError = require("../helpers/appError.helper");
-const { authSchema } = require("../schemas/auth.schema");
+const { authSchema, userSchema } = require("../schemas/auth.schema");
 
 exports.selectUser = permission => {
 	return catchAsync(async (req, res, next) => {
@@ -44,18 +44,20 @@ exports.selectUser = permission => {
 }
 
 exports.validatePartner = catchAsync(async (req, res, next) => {
-	try {
-		const { username, password } = req.body;
-		await authSchema.validate({
-			body: { username, password }
-		});
+	const { username, password } = req.body;
+	await authSchema.validate({
+		body: { username, password }
+	});
 
-		return next();
-	} catch (e) {
-		throw new AppError('Dữ liệu không hợp lệ !', 400);
-	}
+	return next();
+
 });
 
 exports.validateUser = catchAsync(async (req, res, next) => {
-	
+	const { userId, email } = req.body;
+	await userSchema.validate({
+		body: { userId, email }
+	});
+
+	return next();
 });

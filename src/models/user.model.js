@@ -11,6 +11,7 @@ module.exports = (sequelize) => {
 		userId: {
 			type: DataTypes.STRING,
 			unique: true,
+			primaryKey: true,
 			allowNull: false,
 		},
 		encryptToken: {

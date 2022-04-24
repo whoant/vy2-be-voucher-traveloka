@@ -27,6 +27,9 @@ module.exports = (sequelize) => {
 				}
 			}
 		},
+		imageUrl: {
+			type: DataTypes.STRING
+		},
 		effectiveAt: {
 			type: DataTypes.DATE,
 			allowNull: false,

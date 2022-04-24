@@ -50,6 +50,9 @@ module.exports = (sequelize) => {
 				}
 			}
 		},
+		imageUrl: {
+			type: DataTypes.STRING,
+		},
 		amount: {
 			type: DataTypes.BIGINT,
 			allowNull: false,

@@ -1,5 +1,5 @@
-const catchAsync = require('../../helpers/catchAsync.helper');
-const PartnerService = require("../../services/partner");
+const catchAsync = require('../helpers/catchAsync.helper');
+const PartnerService = require("../services/partner");
 
 exports.getGiftCards = catchAsync(async (req, res, next) => {
 	const partner = new PartnerService(res.locals.partner);

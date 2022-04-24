@@ -1,7 +1,7 @@
-const { generateToken } = require("../../helpers/jwt.helper");
-const AppError = require('../../helpers/appError.helper');
-const catchAsync = require('../../helpers/catchAsync.helper');
-const { Partner } = require("../../models");
+const { generateToken } = require("../helpers/jwt.helper");
+const AppError = require('../helpers/appError.helper');
+const catchAsync = require('../helpers/catchAsync.helper');
+const { Partner } = require("../models");
 
 exports.login = catchAsync(async (req, res) => {
 	const { username, password } = req.body;

@@ -1,6 +1,6 @@
-const AppError = require('../../helpers/appError.helper');
-const catchAsync = require('../../helpers/catchAsync.helper');
-const PartnerService = require("../../services/partner");
+const AppError = require('../helpers/appError.helper');
+const catchAsync = require('../helpers/catchAsync.helper');
+const PartnerService = require("../services/partner");
 
 exports.getVouchers = catchAsync(async (req, res, next) => {
 	const partner = new PartnerService(res.locals.partner);

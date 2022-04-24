@@ -55,3 +55,7 @@ exports.validatePartner = catchAsync(async (req, res, next) => {
 		throw new AppError('Dữ liệu không hợp lệ !', 400);
 	}
 });
+
+exports.validateUser = catchAsync(async (req, res, next) => {
+	
+});

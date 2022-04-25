@@ -104,9 +104,9 @@ class UserService {
         });
     }
 
-    async #checkVoucher(voucherId) {
+    async checkVoucher(voucherId) {
         const voucher = await Voucher.findByPk(voucherId);
-        if (!voucher) throw new Error('Voucher không tồn tại !');
+        if (!voucher) throw new AppError('Voucher không tồn tại !', 500);
         return voucher;
     }
 

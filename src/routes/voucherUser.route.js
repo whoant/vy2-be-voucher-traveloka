@@ -9,7 +9,7 @@ router.get('/eligible', authMiddleware.selectUser('USER'), voucherUserController
 
 router.get('/check-condition', authMiddleware.selectUser('USER'), voucherUserController.checkCondition);
 
-router.post('/', authMiddleware.selectUser('USER'), voucherUserController.saveVoucher);
+router.post('/save', authMiddleware.selectUser('USER'), voucherUserController.saveVoucher);
 
 
 module.exports = router;

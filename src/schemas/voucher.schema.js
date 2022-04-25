@@ -11,7 +11,7 @@ exports.voucherSchema = yup.object({
         effectiveAt: yup.date().required(),
         expirationAt: yup.date().required(),
         threshold: yup.number().required().positive().integer(),
-        discount: yup.number().required().positive().integer(),
+        discount: yup.number().required().integer(),
         maxAmount: yup.number().required().positive().integer()
     })
 });

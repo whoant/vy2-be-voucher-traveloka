@@ -1,9 +1,15 @@
-const authRoute = require('./auth.route');
-const voucherRoute = require('./voucher.route');
-const giftCardRoute = require('./giftCard.route');
+const authPartnerRoute = require('./authPartner.route');
+const voucherPartnerRoute = require('./voucherPartner.route');
+const giftCardPartnerRoute = require('./giftCardPartner.route');
+
+const authUserRoute = require('./authUser.route');
+const voucherUserRoute = require('./voucherUser.route');
 
 module.exports = app => {
-	app.use('/api/v1/partner/auth', authRoute);
-	app.use('/api/v1/partner/voucher', voucherRoute);
-	app.use('/api/v1/partner/gift-card', giftCardRoute);
+    app.use('/api/v1/partner/auth', authPartnerRoute);
+    app.use('/api/v1/partner/voucher', voucherPartnerRoute);
+    app.use('/api/v1/partner/gift-card', giftCardPartnerRoute);
+
+    app.use('/api/v1/user/auth', authUserRoute);
+    app.use('/api/v1/user/voucher', voucherUserRoute);
 };

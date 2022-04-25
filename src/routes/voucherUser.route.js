@@ -2,12 +2,14 @@ const express = require('express');
 
 const router = express.Router();
 
-const voucherMiddleware = require('../middlewares/voucher.middleware');
 const authMiddleware = require('../middlewares/auth.middleware');
-const voucherController = require('../controllers/voucher.controller');
+const voucherUserController = require('../controllers/user/voucher.controller');
 
-router.get('/', authMiddleware.selectUser('USER'), voucherController.getVouchers);
-router.post('/', authMiddleware.selectUser('USER'), voucherMiddleware.validateVoucher, voucherController.createVoucher);
+router.get('/eligible', authMiddleware.selectUser('USER'), voucherUserController.getVoucherEligible);
+
+router.get('/check-condition', authMiddleware.selectUser('USER'), voucherUserController.checkCondition);
+
+router.post('/', authMiddleware.selectUser('USER'), voucherUserController.saveVoucher);
 
 
 module.exports = router;

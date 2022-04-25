@@ -1,66 +1,71 @@
-const { formatMoney } = require("../../helpers/utilities.helper");
-const { Voucher, Condition } = require("../../models");
+const { Voucher, Condition, GiftCard } = require("../../models");
+const { combineDescriptionGiftCard, combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
 
 class PartnerService {
 
-	constructor(partner) {
-		this.partner = partner;
-	}
+    constructor(partner) {
+        this.partner = partner;
+    }
 
-	getPartnerId() {
-		return this.partner.dataValues.id;
-	}
+    getPartnerId() {
+        return this.partner.dataValues.id;
+    }
 
-	async getVouchers() {
-		const partnerId = this.getPartnerId();
-		const vouchers = await Voucher.findAll({
-			where: {
-				partnerId,
-			},
-			include: {
-				model: Condition,
-				attributes: ['threshold', 'discount', 'maxAmount']
-			},
-			attributes: {
-				exclude: ['createdAt', 'updatedAt', 'partnerId']
-			},
-			raw: true,
-			nest: true
-		});
+    async getVouchers() {
+        const vouchers = await Voucher.findAll({
+            where: {
+                partnerId: this.getPartnerId(),
+            },
+            include: {
+                model: Condition,
+                attributes: ['threshold', 'discount', 'maxAmount']
+            },
+            attributes: {
+                exclude: ['createdAt', 'updatedAt', 'partnerId']
+            },
+            raw: true,
+            nest: true
+        });
 
-		const listVoucher = vouchers.map(voucher => {
-			return {
-				...voucher,
-				description: this.combineDescription(voucher.Condition)
-			}
-		});
+        return vouchers.map(voucher => {
+            return {
+                ...voucher,
+                description: combineDescriptionVoucher(voucher.Condition)
+            }
+        });
+    }
 
-		return listVoucher;
-	}
+    async createVoucher(voucher) {
+        const newVoucher = await this.partner.createVoucher(voucher);
 
-	async createVoucher(voucher) {
-		const newVoucher = await this.partner.createVoucher(voucher);
+        return newVoucher.createCondition(voucher);
+    }
 
-		return newVoucher.createCondition(voucher);
-	}
+    async getGiftCards() {
+        const giftCards = await GiftCard.findAll({
+            where: {
+                partnerId: this.getPartnerId(),
+            },
+            attributes: {
+                exclude: ['createdAt', 'updatedAt', 'partnerId']
+            },
+            raw: true,
+            nest: true
+        });
 
-	getGiftCards() {
-		return this.partner.getGiftCards();
-	}
+        return giftCards.map(giftCard => {
+            return {
+                ...giftCard,
+                description: combineDescriptionGiftCard(giftCard)
+            }
+        });
+    }
 
-	createGiftCard(giftCard) {
-		return this.partner.createGiftCard(giftCard);
-	}
+    createGiftCard(giftCard) {
+        return this.partner.createGiftCard(giftCard);
+    }
 
-	combineDescription(condition) {
-		const { threshold, discount, maxAmount } = condition;
-		const formatThreshold = formatMoney(threshold);
-		const formatMaxAmount = formatMoney(maxAmount);
-		if (discount === 0) {
-			return `Đơn hàng trị giá trên ${formatThreshold}đ sẽ nhận được giảm giá ${formatMaxAmount}đ`;
-		}
-		return `Đơn hàng trị giá trên ${formatThreshold}đ sẽ nhận được giảm giá ${discount}%, không vượt quá ${formatMaxAmount}đ`;
-	}
+
 }
 
 module.exports = PartnerService;

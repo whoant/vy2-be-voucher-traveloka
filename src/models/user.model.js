@@ -10,7 +10,6 @@ module.exports = (sequelize) => {
 		},
 		userId: {
 			type: DataTypes.STRING,
-			unique: true,
 			allowNull: false,
 		},
 		encryptToken: {

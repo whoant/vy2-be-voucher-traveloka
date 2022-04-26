@@ -51,7 +51,7 @@ class UserService {
                 attributes: ['threshold', 'discount', 'maxAmount']
             },
             attributes: {
-                exclude: ['createdAt', 'updatedAt', 'partnerId']
+                exclude: ['createdAt', 'updatedAt', 'partnerId', 'id']
             },
             raw: true,
             nest: true
@@ -66,14 +66,14 @@ class UserService {
 
     }
 
-    async createUserVoucher(voucherId) {
-        const voucher = await this.checkVoucher(voucherId);
+    async createUserVoucher(code) {
+        const voucher = await this.checkVoucher(code);
         if (voucher.amount > 0) throw new AppError('Lưu voucher thất bại !');
 
         try {
             await UserVoucher.create({
                 state: 'OWNED',
-                voucherId,
+                voucherId: voucher.id,
                 userId: this.getUserId()
             });
         } catch (e) {
@@ -82,16 +82,25 @@ class UserService {
 
     }
 
-    async checkVoucherValid(voucherId, amount) {
-        const voucher = await this.checkVoucher(voucherId);
-        console.log(voucher.Condition);
+    async checkVoucherCondition(code, typeVoucher, amount) {
+        const voucher = await this.checkUserVoucherValid(code, typeVoucher);
+        const condition = await voucher.getCondition();
+        const res = {
+            status: 'Không đủ điều kiện'
+        }
 
-        return await UserVoucher.findOne({
-            where: {
-                userId: this.getUserId(),
-                voucherId
+        if (Number(amount) >= Number(condition.threshold)) {
+            res.status = 'Đủ điều kiện';
+            let deduct = Number(condition.maxAmount);
+            if (Number(condition.discount) > 0) {
+                let deductTemp = Number(amount) * Number(condition.discount) / 100;
+                console.log(deductTemp);
+                if (deductTemp < deduct) deduct = deductTemp;
             }
-        })
+            res.amount = deduct;
+        }
+        return res;
+
     }
 
     async getDetailVoucher(voucherId) {
@@ -104,8 +113,12 @@ class UserService {
         });
     }
 
-    async checkVoucher(voucherId) {
-        const voucher = await Voucher.findByPk(voucherId);
+    async checkVoucher(code) {
+        const voucher = await Voucher.findOne({
+            where: {
+                voucherCode: code
+            }
+        });
         if (!voucher) throw new AppError('Voucher không tồn tại !', 500);
         return voucher;
     }
@@ -143,7 +156,6 @@ class UserService {
             if (UserVoucher.state !== 'OWNED') return;
 
             newVouchers.push({
-                id: UserVoucher.id,
                 title,
                 content,
                 voucherCode,
@@ -154,6 +166,32 @@ class UserService {
 
         return newVouchers;
     }
+
+    async checkUserVoucherValid(code, typeVoucher) {
+        const voucher = await Voucher.findOne({
+            where: {
+                voucherCode: code
+            },
+            include: {
+                model: Partner,
+                where: {
+                    typeVoucher
+                }
+            }
+        });
+        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
+
+        const userVoucher = await UserVoucher.findOne({
+            where: {
+                voucherId: voucher.id
+            }
+        });
+
+        if (!userVoucher || !userVoucher.state === 'OWNED') throw new AppError('Voucher không tồn tại !', 400);
+
+        return voucher;
+    }
+
 
 }
 

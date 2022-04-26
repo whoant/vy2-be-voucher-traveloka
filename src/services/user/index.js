@@ -1,4 +1,4 @@
-const { Voucher, UserVoucher, Condition, Partner } = require("../../models");
+const { Voucher, UserVoucher, Condition, Partner, User } = require("../../models");
 const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
 const { combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
@@ -66,13 +66,13 @@ class UserService {
 
     }
 
-    async createUserVoucher(voucherId, isBuy = false) {
-        await this.checkVoucher(voucherId);
-        let state = 'OWNED';
-        if (isBuy) state = 'SPENDING'
+    async createUserVoucher(voucherId) {
+        const voucher = await this.checkVoucher(voucherId);
+        if (voucher.amount > 0) throw new AppError('Lưu voucher thất bại !');
+
         try {
             await UserVoucher.create({
-                state,
+                state: 'OWNED',
                 voucherId,
                 userId: this.getUserId()
             });
@@ -108,6 +108,51 @@ class UserService {
         const voucher = await Voucher.findByPk(voucherId);
         if (!voucher) throw new AppError('Voucher không tồn tại !', 500);
         return voucher;
+    }
+
+    async getListVoucher(typeVoucher) {
+        const partner = await Partner.findOne({
+            where: {
+                typeVoucher
+            },
+            raw: true
+        });
+
+        if (!partner) throw new AppError("Loại voucher này không tồn tại !", 500);
+
+        const listVoucherOwned = await Voucher.findAll({
+            attributes: {
+                exclude: ['createdAt', 'updatedAt']
+            },
+            include: [
+                {
+                    model: User,
+                    right: true,
+                    attributes: []
+                },
+                {
+                    model: Condition,
+                    attributes: ['threshold', 'discount', 'maxAmount']
+                }],
+            nest: true,
+            raw: true
+        });
+        const newVouchers = [];
+        listVoucherOwned.forEach(voucher => {
+            const { Users: { UserVoucher }, title, content, voucherCode, imageUrl, Condition } = voucher;
+            if (UserVoucher.state !== 'OWNED') return;
+
+            newVouchers.push({
+                id: UserVoucher.id,
+                title,
+                content,
+                voucherCode,
+                imageUrl,
+                description: combineDescriptionVoucher(Condition)
+            });
+        });
+
+        return newVouchers;
     }
 
 }

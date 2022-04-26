@@ -35,3 +35,15 @@ exports.checkCondition = catchAsync(async (req, res, next) => {
         data: { vouchers }
     });
 });
+
+exports.getListVoucher = catchAsync(async (req, res, next) => {
+    const { typeVoucher } = req.query;
+    const userService = new UserService(res.locals.user);
+    const vouchers = await userService.getListVoucher(typeVoucher);
+
+    res.json({
+        status: 'success',
+        message: 'Lấy danh sách thành công !',
+        data: { vouchers }
+    });
+});

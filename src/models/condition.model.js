@@ -8,16 +8,6 @@ module.exports = (sequelize) => {
             primaryKey: true,
             defaultValue: Sequelize.UUIDV4,
         },
-        eligible: {
-            type: DataTypes.BIGINT,
-            allowNull: false,
-            validate: {
-                isInt: {
-                    args: true,
-                    msg: 'Số tiền để nhận voucher không hợp lệ !'
-                }
-            }
-        },
         threshold: {
             type: DataTypes.BIGINT,
             allowNull: false,

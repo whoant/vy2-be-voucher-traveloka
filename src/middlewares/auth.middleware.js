@@ -26,6 +26,7 @@ exports.selectUser = permission => {
 
         if (permission === 'USER') {
             const userId = req.get('user_id');
+            if (!userId) throw new AppError('Vui lòng nhập đủ thông tin !', 500);
             const user = await User.findOne({
                 where: {
                     userId

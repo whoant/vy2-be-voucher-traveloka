@@ -2,9 +2,9 @@ const catchAsync = require("../../helpers/catchAsync.helper");
 const UserService = require("../../services/user");
 
 exports.saveVoucher = catchAsync(async (req, res, next) => {
-    const { voucherId } = req.body;
+    const { code } = req.body;
     const userService = new UserService(res.locals.user);
-    await userService.createUserVoucher(voucherId);
+    await userService.createUserVoucher(code);
 
     res.json({
         status: 'success',
@@ -25,9 +25,9 @@ exports.getVoucherEligible = catchAsync(async (req, res, next) => {
 });
 
 exports.checkCondition = catchAsync(async (req, res, next) => {
-    const { amount, voucherId } = req.body;
+    const { amount, code, typeVoucher } = req.query;
     const userService = new UserService(res.locals.user);
-    const vouchers = await userService.checkVoucherValid(voucherId, amount);
+    const vouchers = await userService.checkVoucherCondition(code, typeVoucher, amount);
 
     res.json({
         status: 'success',

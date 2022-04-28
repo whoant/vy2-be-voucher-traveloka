@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { randomString } = require("../helpers/utilities.helper");
+const moment = require("moment");
 
 const STATE = {
     TIMEOUT: 'TIMEOUT',
@@ -29,15 +30,27 @@ module.exports = (sequelize) => {
             allowNull: false,
             defaultValue: DataTypes.NOW
         },
+        usedAt: {
+            type: DataTypes.DATE,
+        }
     }, {
         hooks: {
             beforeCreate(attributes, options) {
-                const { state } = attributes.dataValues;
+                const { state } = attributes;
                 if (state === STATE.SPENDING) {
-                    attributes.dataValues.refCode = randomString(10);
+                    attributes.refCode = randomString(10);
                 }
             },
-            beforeUpdate(instance, options) {
+            beforeUpdate(attributes, options) {
+                let { state } = attributes;
+                if (state === STATE.DONE) {
+                    attributes.usedAt = moment().toDate();
+                    if (attributes._previousDataValues.state === STATE.OWNED) {
+                        attributes.effectiveAt = moment().toDate();
+                    }
+
+                }
+
             }
         },
     });

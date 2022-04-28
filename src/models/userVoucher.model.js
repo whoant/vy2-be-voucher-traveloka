@@ -9,7 +9,7 @@ const STATE = {
 };
 
 module.exports = (sequelize) => {
-    return sequelize.define('UserVoucher', {
+    const UserVoucher = sequelize.define('UserVoucher', {
         id: {
             type: DataTypes.UUID,
             allowNull: false,
@@ -40,16 +40,20 @@ module.exports = (sequelize) => {
             beforeUpdate(instance, options) {
             }
         },
-        instanceMethods: {
-            isSpending: function () {
-                return this.state === STATE.SPENDING
-            },
-            isOwned: function () {
-                return this.state === STATE.OWNED
-            },
-            isDone: function () {
-                return this.state === STATE.DONE;
-            }
-        }
     });
+
+    UserVoucher.prototype.isOwned = function () {
+        return this.state === STATE.OWNED
+    };
+
+    UserVoucher.prototype.isSpending = function () {
+        return this.state === STATE.SPENDING
+    };
+
+    UserVoucher.prototype.isDone = function () {
+        return this.state === STATE.DONE
+    };
+
+
+    return UserVoucher;
 };

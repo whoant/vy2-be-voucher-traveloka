@@ -2,7 +2,9 @@ const { sequelize } = require('../models');
 
 module.exports = async () => {
     try {
-        await sequelize.sync();
+        await sequelize.sync({
+            logging: false
+        });
         console.log('Connect database successfully');
     } catch (e) {
         console.error('Connect database failed');

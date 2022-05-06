@@ -3,6 +3,8 @@ const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
 const { combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
 const VietQR = require("../vietqr");
+const { setAsync } = require("../../helpers/redis.helper");
+const clientRedis = require('../../config/redis');
 
 class UserService {
     constructor(user) {
@@ -163,7 +165,7 @@ class UserService {
         const imageBase64 = await VietQR.generateQR(info)
 
         const result = {
-            refCode: userVoucher.refCode,
+            ya: userVoucher.refCode,
             imageBase64,
             amount: voucher.amount,
             bin: 970416,
@@ -173,6 +175,22 @@ class UserService {
 
         return result;
     }
+
+
+    async preOrder(orderInfo) {
+        const { typeVoucher, code, transactionId, amount, amountAfter } = orderInfo;
+        await clientRedis.set(`${this.getUserId()}:${code}:${typeVoucher}`, JSON.stringify({
+            typeVoucher,
+            code,
+            transactionId,
+            amount,
+            amountAfter
+        }), {
+            EX: 5
+        });
+        return true;
+    }
+    
 
     getUserId() {
         return this.user.dataValues.id;
@@ -190,7 +208,6 @@ class UserService {
             let deduct = Number(condition.maxAmount);
             if (Number(condition.discount) > 0) {
                 let deductTemp = Number(amount) * Number(condition.discount) / 100;
-                console.log(deductTemp);
                 if (deductTemp < deduct) deduct = deductTemp;
             }
             res.amount = deduct;

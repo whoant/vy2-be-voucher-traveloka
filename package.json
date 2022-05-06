@@ -18,6 +18,7 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.3",
     "morgan": "^1.10.0",
+    "redis": "^4.1.0",
     "sequelize": "^6.17.0",
     "stripe": "^8.215.0",
     "tedious": "^14.4.0",

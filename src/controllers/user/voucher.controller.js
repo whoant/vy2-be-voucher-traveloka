@@ -59,3 +59,17 @@ exports.buyVoucher = catchAsync(async (req, res, next) => {
         data: { ...userVoucher }
     });
 });
+
+exports.preOrder = catchAsync(async (req, res, next) => {
+    const userService = new UserService(res.locals.user);
+    await userService.preOrder(req.body);
+
+    res.json({
+        status: 'success',
+        message: 'Áp mã thành công !'
+    });
+});
+
+exports.cancelOrder = catchAsync(async (req, res, next) => {
+
+});

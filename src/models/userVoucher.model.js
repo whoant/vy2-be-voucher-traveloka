@@ -19,11 +19,10 @@ module.exports = (sequelize) => {
             values: Object.values(STATE),
             defaultValue: STATE.OWNED
         },
-        refCode: {
-            type: DataTypes.STRING(10),
-        },
         effectiveAt: {
             type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW
         },
         usedAt: {
             type: DataTypes.DATE,
@@ -36,12 +35,7 @@ module.exports = (sequelize) => {
                 let { state } = attributes;
                 if (state === STATE.DONE) {
                     attributes.usedAt = moment().toDate();
-                    if (attributes._previousDataValues.state === STATE.OWNED) {
-                        attributes.effectiveAt = moment().toDate();
-                    }
-
                 }
-
             }
         },
     });

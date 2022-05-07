@@ -47,8 +47,12 @@ module.exports = (sequelize) => {
     });
 
     UserVoucher.prototype.isOwned = function () {
-        return this.state === STATE.OWNED
+        return this.state === STATE.OWNED;
     };
+
+    UserVoucher.prototype.isDone = function () {
+        return this.state === STATE.DONE;
+    }
 
     return UserVoucher;
 };

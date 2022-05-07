@@ -17,7 +17,6 @@ class UserService {
 
         try {
             await UserVoucher.create({
-                state: 'OWNED',
                 voucherId: voucher.id,
                 userId: this.getUserId()
             });
@@ -99,13 +98,13 @@ class UserService {
             nest: true,
             raw: true
         });
+
         const newVouchers = [];
         for (const voucher of listVoucherOwned) {
             const { Users: { UserVoucher }, title, content, voucherCode, imageUrl, Condition } = voucher;
-            if (this.getUserId() !== UserVoucher.userId) continue;
-            if (UserVoucher.state !== 'OWNED') continue;
+            if (this.getUserId() !== UserVoucher.userId || !UserVoucher.isOwned()) continue;
             const isExists = await clientRedis.exists(this.generateVoucherId(voucherCode, typeVoucher));
-            if (isExists) return;
+            if (isExists) continue;
 
             newVouchers.push({
                 title,

@@ -71,5 +71,11 @@ exports.preOrder = catchAsync(async (req, res, next) => {
 });
 
 exports.cancelOrder = catchAsync(async (req, res, next) => {
+    const userService = new UserService(res.locals.user);
+    await userService.cancelOrder(req.body);
 
+    res.json({
+        status: 'success',
+        message: 'Huỷ thành công !'
+    });
 });

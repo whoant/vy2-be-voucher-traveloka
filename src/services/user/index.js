@@ -12,7 +12,8 @@ class UserService {
 
     async createUserVoucher(code, state) {
         const voucher = await this.checkVoucher(code);
-        if (voucher.amount > 0) throw new AppError('Lưu voucher thất bại !');
+
+        if (voucher.isBuy()) throw new AppError('Voucher này bạn phải mua mới sử dụng được !');
 
         try {
             await UserVoucher.create({
@@ -145,7 +146,7 @@ class UserService {
             }
         });
 
-        if (!userVoucher || !userVoucher.state === 'OWNED') throw new AppError('Voucher không tồn tại !', 400);
+        if (!userVoucher || !userVoucher.isOwned()) throw new AppError('Voucher không tồn tại !', 400);
 
         return voucher;
     }
@@ -261,7 +262,6 @@ class UserService {
             where: {
                 typeVoucher
             },
-            raw: true
         });
 
         if (!partner) throw new AppError("Loại voucher này không tồn tại !", 500);

@@ -17,5 +17,7 @@ router.post('/buy', authMiddleware.selectUser('USER'), voucherUserController.buy
 
 router.post('/pre-order', authMiddleware.selectUser('USER'), voucherUserController.preOrder);
 
+router.post('/cancel-order', authMiddleware.selectUser('USER'), voucherUserController.cancelOrder);
+
 
 module.exports = router;

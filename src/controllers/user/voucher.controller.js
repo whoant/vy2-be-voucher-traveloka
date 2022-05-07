@@ -47,3 +47,35 @@ exports.getListVoucher = catchAsync(async (req, res, next) => {
         data: { vouchers }
     });
 });
+
+exports.buyVoucher = catchAsync(async (req, res, next) => {
+    const { typeVoucher, code } = req.body;
+    const userService = new UserService(res.locals.user);
+    const userVoucher = await userService.buyVoucher(code, typeVoucher);
+
+    res.json({
+        status: 'success',
+        message: 'Vui lòng thực hiện giao dịch !',
+        data: { ...userVoucher }
+    });
+});
+
+exports.preOrder = catchAsync(async (req, res, next) => {
+    const userService = new UserService(res.locals.user);
+    await userService.preOrder(req.body);
+
+    res.json({
+        status: 'success',
+        message: 'Áp mã thành công !'
+    });
+});
+
+exports.cancelOrder = catchAsync(async (req, res, next) => {
+    const userService = new UserService(res.locals.user);
+    await userService.cancelOrder(req.body);
+
+    res.json({
+        status: 'success',
+        message: 'Huỷ thành công !'
+    });
+});

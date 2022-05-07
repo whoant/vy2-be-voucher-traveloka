@@ -36,7 +36,7 @@ module.exports = (sequelize) => {
         usedAt: {
             type: DataTypes.DATE,
             allowNull: false,
-            defaultValue: Sequelize.NOW
+            defaultValue: DataTypes.NOW
         }
     });
 };

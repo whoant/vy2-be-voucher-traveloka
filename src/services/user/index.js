@@ -1,9 +1,10 @@
-const { Voucher, UserVoucher, Condition, Partner, User } = require("../../models");
+const { Voucher, UserVoucher, Condition, Partner, User, DetailUserVoucher } = require("../../models");
 const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
 const { combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
 const VietQR = require("../vietqr");
 const clientRedis = require('../../config/redis');
+const { randomString } = require("../../helpers/utilities.helper");
 
 class UserService {
     constructor(user) {
@@ -102,7 +103,7 @@ class UserService {
         const newVouchers = [];
         for (const voucher of listVoucherOwned) {
             const { Users: { UserVoucher }, title, content, voucherCode, imageUrl, Condition } = voucher;
-            if (this.getUserId() !== UserVoucher.userId || !UserVoucher.isOwned()) continue;
+            if (this.getUserId() !== UserVoucher.userId || UserVoucher.state !== 'OWNED') continue;
             const isExists = await clientRedis.exists(this.generateVoucherId(voucherCode, typeVoucher));
             if (isExists) continue;
 
@@ -153,7 +154,13 @@ class UserService {
     async buyVoucher(code, typeVoucher) {
         const voucher = await Voucher.findOne({
             where: {
-                voucherCode: code
+                voucherCode: code,
+                effectiveAt: {
+                    [Op.lte]: Date.now()
+                },
+                expirationAt: {
+                    [Op.gte]: Date.now()
+                },
             },
             include: {
                 model: Partner,
@@ -164,16 +171,17 @@ class UserService {
         });
         if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
 
-        const userVoucher = await UserVoucher.create({
-            voucherId: voucher.id,
-            userId: this.getUserId(),
-        });
+        const refCode = randomString(10);
+        // const userVoucher = await UserVoucher.create({
+        //     voucherId: voucher.id,
+        //     userId: this.getUserId(),
+        // });
 
         const info = {
             bin: 970416,
             accountNo: 112831,
             amount: voucher.amount,
-            description: userVoucher.refCode,
+            refCode,
             accountName: encodeURIComponent('Vo Van Hoang Tuan')
         };
 
@@ -208,6 +216,23 @@ class UserService {
     async cancelOrder(orderInfo) {
         const { typeVoucher, code } = orderInfo;
         await clientRedis.del(this.generateVoucherId(code, typeVoucher));
+
+        return true;
+    }
+
+    async updateStateVoucher(orderInfo) {
+        const { typeVoucher, code, transactionId, amount, amountAfter } = orderInfo;
+        const voucher = await this.checkUserVoucherValid(code, typeVoucher);
+
+        const userVoucher = await this.getDetailVoucher(voucher.id);
+        userVoucher.state = "DONE";
+        await userVoucher.save();
+        await Promise.all([
+            clientRedis.del(this.generateVoucherId(code, typeVoucher)),
+            userVoucher.createDetailUserVoucher({
+                transactionId, amount, amountAfter,
+            })
+        ]);
 
         return true;
     }

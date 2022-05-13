@@ -79,3 +79,13 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
         message: 'Huỷ thành công !'
     });
 });
+
+exports.updateStateVoucher = catchAsync(async (req, res, next) => {
+    const userService = new UserService(res.locals.user);
+    await userService.updateStateVoucher(req.body);
+
+    res.json({
+        status: 'success',
+        message: 'Sử dụng voucher thành công !'
+    });
+});

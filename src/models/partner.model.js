@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { sha256 } = require("../helpers/hash.helper");
+const { randomString } = require("../helpers/utilities.helper");
 
 module.exports = (sequelize) => {
     return sequelize.define('Partner', {
@@ -29,6 +30,7 @@ module.exports = (sequelize) => {
     }, {
         hooks: {
             beforeCreate(record, options) {
+                record.dataValues.secretKey = randomString(10);
                 record.dataValues.password = sha256(record.dataValues.password);
             },
             beforeFind(options) {

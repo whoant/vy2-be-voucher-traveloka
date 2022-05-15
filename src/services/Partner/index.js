@@ -1,5 +1,6 @@
 const { Voucher, Condition, GiftCard } = require("../../models");
 const { combineDescriptionGiftCard, combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
+const PartnerTypeVoucherService = require("../PartnerTypeVoucher");
 
 class PartnerService {
 
@@ -11,10 +12,12 @@ class PartnerService {
         return this.partner.dataValues.id;
     }
 
-    async getVouchers() {
+    async getVouchers(type) {
+        const partnerVoucher = new PartnerTypeVoucherService(null);
+        await partnerVoucher.find(this.getPartnerId(), type);
         const vouchers = await Voucher.findAll({
             where: {
-                partnerId: this.getPartnerId(),
+                PartnerTypeVoucherId: partnerVoucher.getId(),
             },
             include: {
                 model: Condition,
@@ -36,7 +39,9 @@ class PartnerService {
     }
 
     async createVoucher(voucher) {
-        const newVoucher = await this.partner.createVoucher(voucher);
+        const partnerVoucher = new PartnerTypeVoucherService(null);
+        await partnerVoucher.find(this.getPartnerId(), voucher.type);
+        const newVoucher = await partnerVoucher.createVoucher(voucher);
 
         return newVoucher.createCondition(voucher);
     }

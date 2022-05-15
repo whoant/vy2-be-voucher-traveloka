@@ -1,10 +1,6 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const moment = require("moment");
-
-const STATE = {
-    OWNED: 'OWNED',
-    DONE: 'DONE'
-};
+const { STATE_PROMOTION } = require("../constants");
 
 module.exports = (sequelize) => {
     const UserVoucher = sequelize.define('UserVoucher', {
@@ -16,36 +12,30 @@ module.exports = (sequelize) => {
         },
         state: {
             type: DataTypes.ENUM,
-            values: Object.values(STATE),
-            defaultValue: STATE.OWNED
+            values: Object.values(STATE_PROMOTION),
+            defaultValue: STATE_PROMOTION.OWNED
         },
         effectiveAt: {
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: DataTypes.NOW
         },
-        usedAt: {
-            type: DataTypes.DATE,
-        }
     }, {
         hooks: {
             beforeCreate(attributes, options) {
             },
             beforeUpdate(attributes, options) {
-                let { state } = attributes;
-                if (state === STATE.DONE) {
-                    attributes.usedAt = moment().toDate();
-                }
+                
             }
         },
     });
 
     UserVoucher.prototype.isOwned = function () {
-        return this.state === STATE.OWNED;
+        return this.state === STATE_PROMOTION.OWNED;
     };
 
     UserVoucher.prototype.isDone = function () {
-        return this.state === STATE.DONE;
+        return this.state === STATE_PROMOTION.DONE;
     }
 
     return UserVoucher;

@@ -12,6 +12,11 @@ class TypeVoucherService {
         });
     }
 
+    async find(id) {
+        
+        return TypeVoucher.findByPk(id);
+    }
+
 }
 
 module.exports = TypeVoucherService;

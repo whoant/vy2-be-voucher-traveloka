@@ -26,14 +26,6 @@ module.exports = (sequelize) => {
                 msg: 'Mã bí mật đã tồn tại !'
             }
         },
-        typeVoucher: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: {
-                args: true,
-                msg: 'Loại voucher của partner này đã tồn tại !'
-            }
-        }
     }, {
         hooks: {
             beforeCreate(record, options) {

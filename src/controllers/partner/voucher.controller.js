@@ -1,10 +1,11 @@
 const AppError = require('../../helpers/appError.helper');
 const catchAsync = require('../../helpers/catchAsync.helper');
-const PartnerService = require("../../services/partner");
+const PartnerService = require("../../services/Partner");
 
 exports.getVouchers = catchAsync(async (req, res, next) => {
+    const { type } = req.query;
     const partner = new PartnerService(res.locals.partner);
-    const vouchers = await partner.getVouchers();
+    const vouchers = await partner.getVouchers(type);
 
     res.json({
         status: 'success',

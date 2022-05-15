@@ -40,16 +40,6 @@ module.exports = (sequelize) => {
                 msg: 'Mã voucher này đã tồn tại !'
             }
         },
-        limitDay: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            validate: {
-                isInt: {
-                    args: true,
-                    msg: 'Số ngày không hợp lệ !'
-                }
-            }
-        },
         imageUrl: {
             type: DataTypes.STRING,
         },
@@ -81,7 +71,7 @@ module.exports = (sequelize) => {
                 if (!compareDate(effectiveAt, expirationAt)) throw new Error('Ngày hết hiệu lực phải lớn hơn ngày bắt đầu !');
             }
         },
-       
+
     });
 
     Voucher.prototype.isBuy = function () {

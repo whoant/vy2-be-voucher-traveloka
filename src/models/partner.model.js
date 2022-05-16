@@ -10,9 +10,24 @@ module.exports = (sequelize) => {
             primaryKey: true,
             defaultValue: Sequelize.UUIDV4,
         },
+        email: {
+            type: DataTypes.STRING,
+            unique: {
+                args: true,
+                msg: 'Email đã tồn tại !'
+            },
+            allowNull: false
+        },
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
         username: {
             type: DataTypes.STRING,
-            unique: true,
+            unique: {
+                args: true,
+                msg: 'Tài khoản đã tồn tại !'
+            },
             allowNull: false,
         },
         password: {

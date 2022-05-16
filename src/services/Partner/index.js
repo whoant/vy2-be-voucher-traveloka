@@ -1,6 +1,7 @@
-const { Voucher, Condition, GiftCard } = require("../../models");
+const { Voucher, Condition, GiftCard, PartnerTypeVoucher, TypeVoucher } = require("../../models");
 const { combineDescriptionGiftCard, combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
 const PartnerTypeVoucherService = require("../PartnerTypeVoucher");
+const { Op } = require("sequelize");
 
 class PartnerService {
 
@@ -70,7 +71,30 @@ class PartnerService {
         return this.partner.createGiftCard(giftCard);
     }
 
+    async getTypeVouchers() {
+        const listTypeVoucherId = (await PartnerTypeVoucher.findAll({
+            where: {
+                partnerId: this.getPartnerId(),
+                isActive: true
+            },
+            attributes: ['typeVoucherId'],
+            raw: true,
+            nest: true
+        })).map(typeVoucher => typeVoucher.typeVoucherId);
 
+        const listTypeVoucher = await TypeVoucher.findAll({
+            where: {
+                id: {
+                    [Op.in]: listTypeVoucherId
+                }
+            },
+            attributes: ['name', 'type'],
+            raw: true,
+            nest: true
+        })
+
+        return listTypeVoucher;
+    }
 }
 
 module.exports = PartnerService;

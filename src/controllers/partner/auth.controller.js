@@ -12,24 +12,24 @@ exports.login = catchAsync(async (req, res) => {
     });
 
     if (!partner) throw new AppError('Partner không tồn tại !');
-    const token = await generateToken(partner.id);
+    const token = await generateToken({ id: partner.id });
 
     res.json({
         status: 'success',
         message: 'Đăng nhập thành công !',
         data: {
-            token
+            token,
+            name: partner.name,
+            email: partner.email
         }
     });
 });
 
 exports.createPartner = catchAsync(async (req, res) => {
-    const { username, password, typeVouchers } = req.body;
-
+    const { username, password, typeVouchers, email, name } = req.body;
     const newPartner = await Partner.create({
-        username, password, secretKey: ''
+        username, password, email, name, secretKey: ''
     });
-
 
     await Promise.all(typeVouchers.map(async type => {
         const typeVoucher = await TypeVoucher.findOne({

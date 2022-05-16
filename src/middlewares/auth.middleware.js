@@ -2,19 +2,19 @@ const catchAsync = require('../helpers/catchAsync.helper');
 const { Partner, User } = require("../models");
 const AppError = require("../helpers/appError.helper");
 const { authSchema, userSchema } = require("../schemas/auth.schema");
+const { verifyToken } = require("../helpers/jwt.helper");
 
 exports.selectUser = permission => {
     return catchAsync(async (req, res, next) => {
         if (permission === 'PARTNER') {
-            const secretKey = req.get('secret_key');
-            if (!secretKey) {
+            const token = req.get('authorization');
+
+            if (!token || token.split(' ')[0] !== "Bearer") {
                 throw new AppError('Bạn không đủ quyền để truy cập !', 403);
             }
-            const partner = await Partner.findOne({
-                where: {
-                    secretKey
-                }
-            });
+
+            const { data } = await verifyToken(token.split(' ')[1]);
+            const partner = await Partner.findByPk(data.id);
 
             if (!partner) {
                 throw new AppError('Bạn không đủ quyền để truy cập !', 403);

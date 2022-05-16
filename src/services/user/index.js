@@ -1,35 +1,23 @@
-const { Voucher, UserVoucher, Condition, Partner, User, DetailUserVoucher } = require("../../models");
+const {
+    Voucher,
+    UserVoucher,
+    Condition,
+} = require("../../models");
 const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
 const { combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
 const VietQR = require("../vietqr");
 const clientRedis = require('../../config/redis');
-const { randomString } = require("../../helpers/utilities.helper");
+const PartnerTypeVoucherService = require("../PartnerTypeVoucher");
+const { STATE_PROMOTION } = require("../../constants");
 
 class UserService {
-    constructor(user) {
+    constructor(user, partnerTypeVoucher) {
         this.user = user;
+        this.partnerTypeVoucher = partnerTypeVoucher;
     }
 
-    async createUserVoucher(code, state) {
-        const voucher = await this.checkVoucher(code);
-
-        if (voucher.isBuy()) throw new AppError('Voucher này bạn phải mua mới sử dụng được !');
-
-        try {
-            await UserVoucher.create({
-                voucherId: voucher.id,
-                userId: this.getUserId()
-            });
-        } catch (e) {
-            throw new AppError('Bạn đã sở hữu voucher này !');
-        }
-
-    }
-
-    async getVoucherEligible(typeVoucher) {
-        const partner = await this.checkTypeVoucher(typeVoucher);
-
+    async getVoucherEligible() {
         const listVoucherOwned = await UserVoucher.findAll({
             where: {
                 userId: this.getUserId()
@@ -49,7 +37,7 @@ class UserService {
                 expirationAt: {
                     [Op.gte]: Date.now()
                 },
-                partnerId: partner.id
+                PartnerTypeVoucherId: this.partnerTypeVoucher.getId()
             },
             include: {
                 model: Condition,
@@ -68,168 +56,50 @@ class UserService {
                 description: combineDescriptionVoucher(voucher.Condition)
             }
         });
-
     }
-
-    async getListVoucher(typeVoucher) {
-        const partner = await this.checkTypeVoucher(typeVoucher);
-        const listVoucherOwned = await Voucher.findAll({
-            where: {
-                partnerId: partner.id,
-                effectiveAt: {
-                    [Op.lte]: Date.now()
-                },
-                expirationAt: {
-                    [Op.gte]: Date.now()
-                },
-            },
-            attributes: {
-                exclude: ['createdAt', 'updatedAt']
-            },
-            include: [
-                {
-                    model: User,
-                    right: true,
-                    attributes: []
-                },
-                {
-                    model: Condition,
-                    attributes: ['threshold', 'discount', 'maxAmount']
-                }],
-            nest: true,
-            raw: true
-        });
-
-        const newVouchers = [];
-        for (const voucher of listVoucherOwned) {
-            const { Users: { UserVoucher }, title, content, voucherCode, imageUrl, Condition } = voucher;
-            if (this.getUserId() !== UserVoucher.userId || UserVoucher.state !== 'OWNED') continue;
-            const isExists = await clientRedis.exists(this.generateVoucherId(voucherCode, typeVoucher));
-            if (isExists) continue;
-
-            newVouchers.push({
-                title,
-                content,
-                voucherCode,
-                imageUrl,
-                description: combineDescriptionVoucher(Condition)
-            });
-        }
-
-        return newVouchers;
-    }
-
-    async checkUserVoucherValid(code, typeVoucher) {
-        const voucher = await Voucher.findOne({
-            where: {
-                voucherCode: code,
-                effectiveAt: {
-                    [Op.lte]: Date.now()
-                },
-                expirationAt: {
-                    [Op.gte]: Date.now()
-                },
-            },
-            include: {
-                model: Partner,
-                where: {
-                    typeVoucher
-                }
-            }
-        });
-
-        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
-        const userVoucher = await UserVoucher.findOne({
-            where: {
-                voucherId: voucher.id,
-                userId: this.getUserId()
-            }
-        });
-
-        if (!userVoucher || !userVoucher.isOwned()) throw new AppError('Voucher không tồn tại !', 400);
-
-        return voucher;
-    }
-
-    async buyVoucher(code, typeVoucher) {
-        const voucher = await Voucher.findOne({
-            where: {
-                voucherCode: code,
-                effectiveAt: {
-                    [Op.lte]: Date.now()
-                },
-                expirationAt: {
-                    [Op.gte]: Date.now()
-                },
-            },
-            include: {
-                model: Partner,
-                where: {
-                    typeVoucher
-                }
-            }
-        });
-        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
-
-        const refCode = randomString(10);
-        // const userVoucher = await UserVoucher.create({
-        //     voucherId: voucher.id,
-        //     userId: this.getUserId(),
-        // });
-
-        const info = {
-            bin: 970416,
-            accountNo: 112831,
-            amount: voucher.amount,
-            refCode,
-            accountName: encodeURIComponent('Vo Van Hoang Tuan')
-        };
-
-        const imageBase64 = await VietQR.generateQR(info)
-
-        const result = {
-            ya: userVoucher.refCode,
-            imageBase64,
-            amount: voucher.amount,
-            bin: 970416,
-            accountNo: 112831,
-            accountName: 'Vo Van Hoang Tuan'
-        }
-
-        return result;
-    }
-
 
     async preOrder(orderInfo) {
-        const { typeVoucher, code } = orderInfo;
-        await this.checkUserVoucherValid(code, typeVoucher);
-        await clientRedis.set(this.generateVoucherId(code, typeVoucher), JSON.stringify({
-            typeVoucher,
-            code,
+        const { code, transactionId, amount } = orderInfo;
+        const partnerTypeVoucher = this.partnerTypeVoucher;
+
+        const voucher = await this.checkVoucherValid(code);
+        const voucherCondition = await this.checkVoucherCondition(voucher, amount);
+        const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId(), transactionId);
+        const isExists = await clientRedis.exists(cacheVoucherId);
+
+        if (isExists) return false;
+        await clientRedis.set(cacheVoucherId, JSON.stringify({
+            transactionId,
+            voucherId: voucher.id,
+            userId: this.getUserId(),
+            amount,
+            amountAfter: voucherCondition.amount
         }), {
             EX: 60 * 5
         });
 
+        return cacheVoucherId;
+    }
+
+    async cancelOrder(orderId) {
+        await clientRedis.del(orderId);
+
         return true;
     }
 
-    async cancelOrder(orderInfo) {
-        const { typeVoucher, code } = orderInfo;
-        await clientRedis.del(this.generateVoucherId(code, typeVoucher));
+    async updateStateVoucher(orderId) {
+        let orderInfo = await clientRedis.get(orderId);
+        if (!orderInfo) return false;
+        const { userId, voucherId, transactionId, amount, amountAfter } = JSON.parse(orderInfo);
+        const newUserVoucher = await UserVoucher.create({
+            userId,
+            voucherId,
+            state: STATE_PROMOTION.DONE
+        });
 
-        return true;
-    }
-
-    async updateStateVoucher(orderInfo) {
-        const { typeVoucher, code, transactionId, amount, amountAfter } = orderInfo;
-        const voucher = await this.checkUserVoucherValid(code, typeVoucher);
-
-        const userVoucher = await this.getDetailVoucher(voucher.id);
-        userVoucher.state = "DONE";
-        await userVoucher.save();
         await Promise.all([
-            clientRedis.del(this.generateVoucherId(code, typeVoucher)),
-            userVoucher.createDetailUserVoucher({
+            clientRedis.del(orderId),
+            newUserVoucher.createDetailUserVoucher({
                 transactionId, amount, amountAfter,
             })
         ]);
@@ -241,8 +111,7 @@ class UserService {
         return this.user.dataValues.id;
     }
 
-    async checkVoucherCondition(code, typeVoucher, amount) {
-        const voucher = await this.checkUserVoucherValid(code, typeVoucher);
+    async checkVoucherCondition(voucher, amount) {
         const condition = await voucher.getCondition();
         const res = {
             status: 'Không đủ điều kiện'
@@ -261,40 +130,34 @@ class UserService {
 
     }
 
-    async getDetailVoucher(voucherId) {
-
-        return UserVoucher.findOne({
-            where: {
-                userId: this.getUserId(),
-                voucherId
-            }
-        });
+    generateVoucherId(code, partnerTypeVoucherId, transactionId) {
+        return `${this.getUserId()}:${code}:${partnerTypeVoucherId}:${transactionId}`;
     }
 
-    async checkVoucher(code) {
+    async checkVoucherValid(code) {
         const voucher = await Voucher.findOne({
             where: {
-                voucherCode: code
+                voucherCode: code,
+                effectiveAt: {
+                    [Op.lte]: Date.now()
+                },
+                expirationAt: {
+                    [Op.gte]: Date.now()
+                },
+                PartnerTypeVoucherId: this.partnerTypeVoucher.getId()
             }
         });
-        if (!voucher) throw new AppError('Voucher không tồn tại !', 500);
-        return voucher;
-    }
 
-    async checkTypeVoucher(typeVoucher) {
-        const partner = await Partner.findOne({
+        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
+        const userVoucher = await UserVoucher.findOne({
             where: {
-                typeVoucher
-            },
+                voucherId: voucher.id,
+                userId: this.getUserId()
+            }
         });
+        if (!userVoucher || userVoucher.isOwned()) return voucher;
 
-        if (!partner) throw new AppError("Loại voucher này không tồn tại !", 500);
-
-        return partner;
-    }
-
-    generateVoucherId(code, typeVoucher) {
-        return `${this.getUserId()}:${code}:${typeVoucher}`;
+        throw new AppError('Voucher không tồn tại !', 400);
     }
 
 }

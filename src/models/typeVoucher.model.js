@@ -11,10 +11,6 @@ module.exports = (sequelize) => {
         name: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: {
-                args: true,
-                msg: 'Mã bí mật đã tồn tại !'
-            }
         },
         type: {
             type: DataTypes.STRING,

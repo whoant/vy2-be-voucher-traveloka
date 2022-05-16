@@ -4,22 +4,16 @@ const router = express.Router();
 
 const authMiddleware = require('../middlewares/auth.middleware');
 const voucherUserController = require('../controllers/user/voucher.controller');
+const paramMiddleware = require("../middlewares/param.middleware");
 
-router.get('/eligible', authMiddleware.selectUser('USER'), voucherUserController.getVoucherEligible);
+router.get('/eligible', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, voucherUserController.getVoucherEligible);
 
-router.get('/list', authMiddleware.selectUser('USER'), voucherUserController.getListVoucher);
+router.get('/check-condition', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, voucherUserController.checkCondition);
 
-router.get('/check-condition', authMiddleware.selectUser('USER'), voucherUserController.checkCondition);
+router.post('/pre-order', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, voucherUserController.preOrder);
 
-router.post('/save', authMiddleware.selectUser('USER'), voucherUserController.saveVoucher);
+router.post('/cancel-order', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, voucherUserController.cancelOrder);
 
-router.post('/buy', authMiddleware.selectUser('USER'), voucherUserController.buyVoucher);
-
-router.post('/pre-order', authMiddleware.selectUser('USER'), voucherUserController.preOrder);
-
-router.post('/cancel-order', authMiddleware.selectUser('USER'), voucherUserController.cancelOrder);
-
-router.put('/state', authMiddleware.selectUser('USER'), voucherUserController.updateStateVoucher);
-
+router.put('/state', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, voucherUserController.updateStateVoucher);
 
 module.exports = router;

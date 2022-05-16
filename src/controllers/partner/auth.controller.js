@@ -1,7 +1,7 @@
 const { generateToken } = require("../../helpers/jwt.helper");
 const AppError = require('../../helpers/appError.helper');
 const catchAsync = require('../../helpers/catchAsync.helper');
-const { Partner } = require("../../models");
+const { Partner, TypeVoucher, PartnerTypeVoucher } = require("../../models");
 
 exports.login = catchAsync(async (req, res) => {
     const { username, password } = req.body;
@@ -24,15 +24,31 @@ exports.login = catchAsync(async (req, res) => {
 });
 
 exports.createPartner = catchAsync(async (req, res) => {
-    const { username, password, secretKey, typeVoucher } = req.body;
-    if (!secretKey) throw new AppError('Vui lòng kiểm tra lại tài khoản của mình !', 400);
-    await Partner.create({
-        username, password, secretKey, typeVoucher
+    const { username, password, typeVouchers } = req.body;
+
+    const newPartner = await Partner.create({
+        username, password, secretKey: ''
     });
+
+
+    await Promise.all(typeVouchers.map(async type => {
+        const typeVoucher = await TypeVoucher.findOne({
+            where: {
+                type
+            }
+        });
+
+        if (typeVoucher) {
+            return PartnerTypeVoucher.create({
+                partnerId: newPartner.id,
+                typeVoucherId: typeVoucher.id,
+            })
+        }
+    }));
 
     res.json({
         status: 'success',
-        message: 'Tạo partner thành công !',
+        message: 'Tạo Partner thành công !',
     });
 });
 

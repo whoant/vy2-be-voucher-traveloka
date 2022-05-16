@@ -36,3 +36,16 @@ exports.updateStateVoucher = catchAsync(async (req, res, next) => {
         message: 'Cập voucher thành công !',
     });
 });
+
+exports.getTypeVouchers = catchAsync(async (req, res, next) => {
+    const partner = new PartnerService(res.locals.partner);
+    const typeVouchers = await partner.getTypeVouchers();
+
+    res.json({
+        status: 'success',
+        message: 'Lấy danh sách thành công !',
+        data: {
+            typeVouchers
+        }
+    });
+});

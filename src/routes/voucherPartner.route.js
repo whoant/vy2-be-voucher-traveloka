@@ -12,4 +12,6 @@ router.post('/', authMiddleware.selectUser('PARTNER'), voucherMiddleware.validat
 
 router.patch('/user', authMiddleware.selectUser('PARTNER'), voucherController.updateStateVoucher);
 
+router.get('/type-voucher', authMiddleware.selectUser('PARTNER'), voucherController.getTypeVouchers);
+
 module.exports = router;

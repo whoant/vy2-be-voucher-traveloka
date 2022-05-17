@@ -34,4 +34,3 @@ jobs:
 
           # sftp args
           args: '-o ConnectTimeout=5'
-  1

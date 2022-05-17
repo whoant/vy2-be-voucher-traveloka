@@ -155,7 +155,9 @@ class UserService {
                 userId: this.getUserId()
             }
         });
-        if (!userVoucher || userVoucher.isOwned()) return voucher;
+
+
+        if ((!userVoucher && !voucher.isBuy()) || (userVoucher && userVoucher.isOwned())) return voucher;
 
         throw new AppError('Voucher không tồn tại !', 400);
     }

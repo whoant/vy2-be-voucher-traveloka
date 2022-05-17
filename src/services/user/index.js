@@ -148,16 +148,18 @@ class UserService {
             }
         });
 
-        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
+        if (!voucher) throw new AppError("Voucher không tồn tại !", 500);
         const userVoucher = await UserVoucher.findOne({
             where: {
                 voucherId: voucher.id,
                 userId: this.getUserId()
             }
         });
-        if (!userVoucher || userVoucher.isOwned()) return voucher;
 
-        throw new AppError('Voucher không tồn tại !', 400);
+
+        if ((!userVoucher && !voucher.isBuy()) || (userVoucher && userVoucher.isOwned())) return voucher;
+
+        throw new AppError('Voucher không tồn tại !', 500);
     }
 
 }

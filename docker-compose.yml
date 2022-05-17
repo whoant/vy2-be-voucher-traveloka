@@ -3,9 +3,6 @@ version: '3.9'
 services:
   vy2-be-voucher:
     container_name: vy2-be-voucher
-    depends_on:
-      - vy2-redis
-      - vy2-sqlserver
     build:
       context: .
       dockerfile: Dockerfile
@@ -18,26 +15,3 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-  vy2-sqlserver:
-    container_name: vy2-sqlserver
-    image: mcr.microsoft.com/azure-sql-edge
-    restart: unless-stopped
-    env_file:
-      - /sqlserver/.env.sqlserver
-    ports:
-      - ${PORT}:1433
-    volumes:
-      - azure_data:/var/opt/mssql
-  vy2-redis:
-    container_name: vy2-redis
-    image: redis
-    restart: unless-stopped
-    ports:
-      - ${PORT}:6379
-    command: redis-server --save 60 1 --loglevel warning
-    volumes:
-      - redis_data:/data
-
-volumes:
-  redis_data:
-  azure_data:

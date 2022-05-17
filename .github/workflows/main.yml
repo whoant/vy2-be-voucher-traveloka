@@ -1,0 +1,22 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create .env.docker file
+        run: |
+          touch .env.docker
+          echo PORT=${{secrets.PORT}} > .env
+          echo DB_URI=${{secrets.DB_URI}}>> .env
+          echo JWT_SECRET=${{secrets.JWT_SECRET}}>> .env
+          echo REDIS_URI=${{secrets.REDIS_URI}}>> .env
+      - name: Stop containers
+        run: docker-compose down
+      - name: Run containers
+        run: docker-compose up -d --build

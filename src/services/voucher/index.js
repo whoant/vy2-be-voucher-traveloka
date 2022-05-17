@@ -15,7 +15,7 @@ class VoucherService {
             },
         });
 
-        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
+        if (!voucher) throw new AppError("Voucher không tồn tại !", 500);
 
         return voucher;
     }
@@ -34,7 +34,7 @@ class VoucherService {
             },
         });
 
-        if (!userVoucher) throw new AppError("Voucher không tồn tại !", 400);
+        if (!userVoucher) throw new AppError("Voucher không tồn tại !", 500);
 
         return userVoucher;
     }

@@ -3,8 +3,6 @@ version: '3.9'
 services:
   vy2-be-voucher:
     container_name: vy2-be-voucher
-    depends_on:
-      - vy2-redis
     build:
       context: .
       dockerfile: Dockerfile

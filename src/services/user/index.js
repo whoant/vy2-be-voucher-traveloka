@@ -63,7 +63,7 @@ class UserService {
         const partnerTypeVoucher = this.partnerTypeVoucher;
 
         const voucher = await this.checkVoucherValid(code);
-        const voucherCondition = await this.checkVoucherCondition(voucher, amount);
+        const amountAfter = await this.checkVoucherCondition(voucher, amount);
         const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId(), transactionId);
         const isExists = await clientRedis.exists(cacheVoucherId);
 
@@ -73,7 +73,7 @@ class UserService {
             voucherId: voucher.id,
             userId: this.getUserId(),
             amount,
-            amountAfter: voucherCondition.amount
+            amountAfter: amount - amountAfter
         }), {
             EX: 60 * 5
         });

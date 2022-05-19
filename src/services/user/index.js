@@ -113,21 +113,18 @@ class UserService {
 
     async checkVoucherCondition(voucher, amount) {
         const condition = await voucher.getCondition();
-        const res = {
-            status: 'Không đủ điều kiện'
+
+        if (Number(amount) < Number(condition.threshold)) {
+            throw new AppError("Không đủ điều kiện", 500);
         }
 
-        if (Number(amount) >= Number(condition.threshold)) {
-            res.status = 'Đủ điều kiện';
-            let deduct = Number(condition.maxAmount);
-            if (Number(condition.discount) > 0) {
-                let deductTemp = Number(amount) * Number(condition.discount) / 100;
-                if (deductTemp < deduct) deduct = deductTemp;
-            }
-            res.amount = deduct;
+        let deduct = Number(condition.maxAmount);
+        if (Number(condition.discount) > 0) {
+            let deductTemp = Number(amount) * Number(condition.discount) / 100;
+            if (deductTemp < deduct) deduct = deductTemp;
         }
-        return res;
 
+        return deduct;
     }
 
     generateVoucherId(code, partnerTypeVoucherId, transactionId) {

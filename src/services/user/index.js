@@ -124,7 +124,7 @@ class UserService {
             if (deductTemp < deduct) deduct = deductTemp;
         }
 
-        return deduct;
+        return Math.round(deduct);
     }
 
     generateVoucherId(code, partnerTypeVoucherId, transactionId) {

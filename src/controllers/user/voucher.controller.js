@@ -19,12 +19,12 @@ exports.checkCondition = catchAsync(async (req, res, next) => {
     const { partnerTypeVoucher } = res.locals;
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
     const voucher = await userService.checkVoucherValid(code);
-    const vouchers = await userService.checkVoucherCondition(voucher, amount);
-
+    const deduct = await userService.checkVoucherCondition(voucher, amount);
+    
     res.json({
         status: 'success',
         message: 'Đủ điền kiện !',
-        data: { vouchers }
+        data: { amount: deduct }
     });
 });
 

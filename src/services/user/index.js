@@ -67,17 +67,18 @@ class UserService {
         const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId(), transactionId);
         const isExists = await clientRedis.exists(cacheVoucherId);
 
-        if (isExists) return false;
-        await clientRedis.set(cacheVoucherId, JSON.stringify({
-            transactionId,
-            voucherId: voucher.id,
-            userId: this.getUserId(),
-            amount,
-            amountAfter: amount - amountAfter
-        }), {
-            EX: 60 * 5
-        });
-
+        if (isExists) {
+            await clientRedis.set(cacheVoucherId, JSON.stringify({
+                transactionId,
+                voucherId: voucher.id,
+                userId: this.getUserId(),
+                amount,
+                amountAfter: amount - amountAfter
+            }), {
+                EX: 60 * 5
+            });
+        }
+        
         return cacheVoucherId;
     }
 

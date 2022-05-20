@@ -102,6 +102,11 @@ class UserService {
             }), {
                 EX: 60 * 5
             });
+        } else {
+            const parseCache = JSON.parse(await clientRedis.get(cacheVoucherId));
+            if (parseCache.transactionId !== transactionId) {
+                return false;
+            }
         }
 
         return cacheVoucherId;

@@ -29,7 +29,7 @@ exports.createVoucher = catchAsync(async (req, res, next) => {
 exports.updateStateVoucher = catchAsync(async (req, res, next) => {
     const { userId, code, transactionId } = req.body;
     const partner = new PartnerService(res.locals.partner);
-    await partner.updateStateVoucherAfterUsed(userId, code, transactionId)
+    //await partner.updateStateVoucherAfterUsed(userId, code, transactionId)
 
     res.json({
         status: 'success',
@@ -46,6 +46,20 @@ exports.getTypeVouchers = catchAsync(async (req, res, next) => {
         message: 'Lấy danh sách thành công !',
         data: {
             typeVouchers
+        }
+    });
+});
+
+exports.getDetailVoucher = catchAsync(async (req, res, next) => {
+    const { type, code } = req.query;
+    const partner = new PartnerService(res.locals.partner);
+    const info = await partner.getDetail({ type, code });
+
+    res.json({
+        status: 'success',
+        message: 'Lấy thông tin thành công !',
+        data: {
+            info
         }
     });
 });

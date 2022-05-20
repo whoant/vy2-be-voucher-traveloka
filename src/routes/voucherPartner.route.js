@@ -14,4 +14,6 @@ router.patch('/user', authMiddleware.selectUser('PARTNER'), voucherController.up
 
 router.get('/type-voucher', authMiddleware.selectUser('PARTNER'), voucherController.getTypeVouchers);
 
+router.get('/detail', authMiddleware.selectUser('PARTNER'), voucherController.getDetailVoucher);
+
 module.exports = router;

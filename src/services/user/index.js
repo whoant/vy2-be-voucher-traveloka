@@ -88,7 +88,7 @@ class UserService {
 
         const voucher = await this.checkVoucherValid(code);
         const amountAfter = await this.checkVoucherCondition(voucher, amount);
-        const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId(), transactionId);
+        const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId());
         const isExists = await clientRedis.exists(cacheVoucherId);
 
         if (!isExists) {
@@ -142,7 +142,7 @@ class UserService {
                         transaction: t
                     });
                 }
-                
+
                 await Promise.all([
                     clientRedis.del(orderId),
                     newUserVoucher.createDetailUserVoucher({
@@ -180,8 +180,8 @@ class UserService {
         return Math.round(deduct);
     }
 
-    generateVoucherId(code, partnerTypeVoucherId, transactionId) {
-        return `${this.getUserId()}:${code}:${partnerTypeVoucherId}:${transactionId}`;
+    generateVoucherId(code, partnerTypeVoucherId) {
+        return `${this.getUserId()}:${code}:${partnerTypeVoucherId}`;
     }
 
     async checkVoucherValid(code) {

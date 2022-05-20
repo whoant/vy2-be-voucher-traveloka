@@ -1,7 +1,16 @@
-const { Voucher, Condition, GiftCard, PartnerTypeVoucher, TypeVoucher } = require("../../models");
+const {
+    Voucher,
+    Condition,
+    GiftCard,
+    PartnerTypeVoucher,
+    TypeVoucher,
+    UserVoucher,
+    DetailUserVoucher, User
+} = require("../../models");
 const { combineDescriptionGiftCard, combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
 const PartnerTypeVoucherService = require("../PartnerTypeVoucher");
 const { Op } = require("sequelize");
+const { STATE_PROMOTION } = require("../../constants");
 
 class PartnerService {
 
@@ -95,6 +104,57 @@ class PartnerService {
 
         return listTypeVoucher;
     }
+
+    async getDetail({ type, code }) {
+        const partnerVoucher = new PartnerTypeVoucherService(null);
+        await partnerVoucher.find(this.getPartnerId(), type);
+        const voucher = await Voucher.findOne({
+            where: {
+                PartnerTypeVoucherId: partnerVoucher.getId(),
+                voucherCode: code
+            },
+            raw: true,
+            nest: true
+        });
+
+        const userVouchers = await UserVoucher.findAll({
+            where: {
+                voucherId: voucher.id,
+                state: STATE_PROMOTION.DONE
+            },
+            include: {
+                model: DetailUserVoucher,
+                attributes: ['transactionId', 'amount', 'amountAfter', 'usedAt']
+            },
+            raw: true,
+            nest: true
+        });
+
+        const listUser = await Promise.all(userVouchers.map(userVoucher => {
+            return User.findByPk(userVoucher.userId, {
+                raw: true,
+                nest: true
+            });
+        }));
+
+        const result = [];
+        userVouchers.forEach((userVoucher, index) => {
+            const { email } = listUser[index];
+            const { DetailUserVoucher: { amountAfter, amount, transactionId, usedAt }, userId } = userVoucher;
+            result.push({
+                index: index + 1,
+                email,
+                userId,
+                amount,
+                amountAfter,
+                transactionId,
+                usedAt
+            });
+        });
+        
+        return result;
+    }
+
 }
 
 module.exports = PartnerService;

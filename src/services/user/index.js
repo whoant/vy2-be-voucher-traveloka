@@ -1,7 +1,7 @@
 const {
     Voucher,
     UserVoucher,
-    Condition,
+    Condition, sequelize,
 } = require("../../models");
 const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
@@ -18,18 +18,42 @@ class UserService {
     }
 
     async getVoucherEligible() {
-        const listVoucherOwned = await UserVoucher.findAll({
+        const listVoucherDone = (await UserVoucher.findAll({
             where: {
-                userId: this.getUserId()
+                userId: this.getUserId(),
+                state: STATE_PROMOTION.DONE,
+            },
+            attributes: ['voucherId'],
+            raw: true
+        })).map(({ voucherId }) => voucherId);
+
+        const listUserVoucherHave = await UserVoucher.findAll({
+            where: {
+                userId: this.getUserId(),
             },
             attributes: ['voucherId'],
             raw: true
         });
 
+        const listVoucherNotBuy = (await Voucher.findAll({
+            where: {
+                amount: {
+                    [Op.gt]: 0
+                },
+                id: {
+                    [Op.notIn]: listUserVoucherHave.map(({ voucherId }) => voucherId)
+                }
+            },
+            attributes: ['id'],
+            raw: true
+        })).map(({ id }) => id);
+
+        const listVoucherDiff = [...new Set([...listVoucherDone, ...listVoucherNotBuy])]
+
         const vouchers = await Voucher.findAll({
             where: {
                 id: {
-                    [Op.notIn]: listVoucherOwned.map(({ voucherId }) => voucherId)
+                    [Op.notIn]: listVoucherDiff
                 },
                 effectiveAt: {
                     [Op.lte]: Date.now()
@@ -67,18 +91,19 @@ class UserService {
         const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId(), transactionId);
         const isExists = await clientRedis.exists(cacheVoucherId);
 
-        if (isExists) {
+        if (!isExists) {
             await clientRedis.set(cacheVoucherId, JSON.stringify({
                 transactionId,
                 voucherId: voucher.id,
                 userId: this.getUserId(),
                 amount,
+                isBuy: voucher.isBuy(),
                 amountAfter: amount - amountAfter
             }), {
                 EX: 60 * 5
             });
         }
-        
+
         return cacheVoucherId;
     }
 
@@ -90,22 +115,49 @@ class UserService {
 
     async updateStateVoucher(orderId) {
         let orderInfo = await clientRedis.get(orderId);
+
         if (!orderInfo) return false;
-        const { userId, voucherId, transactionId, amount, amountAfter } = JSON.parse(orderInfo);
-        const newUserVoucher = await UserVoucher.create({
-            userId,
-            voucherId,
-            state: STATE_PROMOTION.DONE
-        });
+        const { userId, voucherId, transactionId, amount, amountAfter, isBuy } = JSON.parse(orderInfo);
 
-        await Promise.all([
-            clientRedis.del(orderId),
-            newUserVoucher.createDetailUserVoucher({
-                transactionId, amount, amountAfter,
-            })
-        ]);
+        try {
+            return await sequelize.transaction(async t => {
+                let newUserVoucher;
 
-        return true;
+                if (isBuy) {
+                    newUserVoucher = await UserVoucher.findOne({
+                        where: {
+                            userId,
+                            voucherId,
+                        }
+                    });
+                    newUserVoucher.state = STATE_PROMOTION.DONE;
+                    newUserVoucher.save({ transaction: t });
+
+                } else {
+                    newUserVoucher = await UserVoucher.create({
+                        userId,
+                        voucherId,
+                        state: STATE_PROMOTION.DONE
+                    }, {
+                        transaction: t
+                    });
+                }
+                
+                await Promise.all([
+                    clientRedis.del(orderId),
+                    newUserVoucher.createDetailUserVoucher({
+                        transactionId, amount, amountAfter,
+                    }, {
+                        transaction: t
+                    })
+                ]);
+
+                return true;
+            });
+        } catch (e) {
+
+            return Promise.reject(e);
+        }
     }
 
     getUserId() {

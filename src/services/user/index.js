@@ -10,6 +10,7 @@ const VietQR = require("../vietqr");
 const clientRedis = require('../../config/redis');
 const PartnerTypeVoucherService = require("../PartnerTypeVoucher");
 const { STATE_PROMOTION } = require("../../constants");
+const { sha256 } = require("../../helpers/hash.helper");
 
 class UserService {
     constructor(user, partnerTypeVoucher) {
@@ -186,7 +187,7 @@ class UserService {
     }
 
     generateVoucherId(code, partnerTypeVoucherId) {
-        return `${this.getUserId()}:${code}:${partnerTypeVoucherId}`;
+        return sha256(`${this.getUserId()}:${code}:${partnerTypeVoucherId}`);
     }
 
     async checkVoucherValid(code) {

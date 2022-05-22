@@ -67,3 +67,16 @@ exports.getAnalyzeVoucher = catchAsync(async (req, res, next) => {
         }
     });
 });
+
+exports.getCountVouchers = catchAsync(async (req, res, next) => {
+    const partner = new PartnerService(res.locals.partner, '');
+    const count = await partner.getCountVouchers();
+
+    res.json({
+        status: 'success',
+        message: 'Lấy thông tin thành công !',
+        data: {
+            count
+        }
+    });
+});

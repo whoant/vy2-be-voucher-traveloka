@@ -1,17 +1,17 @@
 const { Voucher, UserVoucher, User, Partner } = require("../../models");
 const AppError = require("../../helpers/appError.helper");
-const { Op } = require("sequelize/types");
+const { Op } = require("sequelize");
 
 class VoucherService {
-    constructor(partner) {
-        this.partner = partner;
+    constructor(partnerVoucher) {
+        this.partnerTypeVoucher = partnerVoucher;
     }
 
     async getVoucherFromCode(code) {
         const voucher = await Voucher.findOne({
             where: {
                 voucherCode: code,
-                partnerId: this.partner.id
+                PartnerTypeVoucherId: this.partnerTypeVoucher.getId(),
             },
         });
 

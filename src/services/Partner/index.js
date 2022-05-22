@@ -157,6 +157,24 @@ class PartnerService {
 
     }
 
+    async getCountVouchers() {
+        const partnerTypeVoucherId = (await PartnerTypeVoucher.findAll({
+            where: {
+                partnerId: this.partner.id,
+            },
+        })).map(item => item.id);
+
+        const count = await Voucher.findAll({
+            where: {
+                PartnerTypeVoucherId: {
+                    [Op.in]: partnerTypeVoucherId
+                }
+            }
+        })
+
+        return count.length || 0;
+    }
+
     async getPartner() {
         const partnerVoucher = new PartnerTypeVoucherService(null);
         await partnerVoucher.find(this.getPartnerId(), this.type);

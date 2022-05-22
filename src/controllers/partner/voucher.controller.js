@@ -4,8 +4,8 @@ const PartnerService = require("../../services/Partner");
 
 exports.getVouchers = catchAsync(async (req, res, next) => {
     const { type } = req.query;
-    const partner = new PartnerService(res.locals.partner);
-    const vouchers = await partner.getVouchers(type);
+    const partner = new PartnerService(res.locals.partner, type);
+    const vouchers = await partner.getVouchers();
 
     res.json({
         status: 'success',
@@ -17,7 +17,8 @@ exports.getVouchers = catchAsync(async (req, res, next) => {
 });
 
 exports.createVoucher = catchAsync(async (req, res, next) => {
-    const partner = new PartnerService(res.locals.partner);
+    const { type } = req.body;
+    const partner = new PartnerService(res.locals.partner, type);
     await partner.createVoucher(req.body);
 
     res.json({
@@ -26,19 +27,8 @@ exports.createVoucher = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.updateStateVoucher = catchAsync(async (req, res, next) => {
-    const { userId, code, transactionId } = req.body;
-    const partner = new PartnerService(res.locals.partner);
-    //await partner.updateStateVoucherAfterUsed(userId, code, transactionId)
-
-    res.json({
-        status: 'success',
-        message: 'Cập voucher thành công !',
-    });
-});
-
 exports.getTypeVouchers = catchAsync(async (req, res, next) => {
-    const partner = new PartnerService(res.locals.partner);
+    const partner = new PartnerService(res.locals.partner, '');
     const typeVouchers = await partner.getTypeVouchers();
 
     res.json({
@@ -52,14 +42,28 @@ exports.getTypeVouchers = catchAsync(async (req, res, next) => {
 
 exports.getDetailVoucher = catchAsync(async (req, res, next) => {
     const { type, code } = req.query;
-    const partner = new PartnerService(res.locals.partner);
-    const info = await partner.getDetail({ type, code });
+    const partner = new PartnerService(res.locals.partner, type);
+    const info = await partner.getDetail(code);
 
     res.json({
         status: 'success',
         message: 'Lấy thông tin thành công !',
         data: {
             info
+        }
+    });
+});
+
+exports.getAnalyzeVoucher = catchAsync(async (req, res, next) => {
+    const { type, code } = req.query;
+    const partner = new PartnerService(res.locals.partner, type);
+    const analyze = await partner.getAnalyzeVoucher(code);
+
+    res.json({
+        status: 'success',
+        message: 'Lấy thông tin thành công !',
+        data: {
+            ...analyze
         }
     });
 });

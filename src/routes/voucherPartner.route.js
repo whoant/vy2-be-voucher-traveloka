@@ -16,4 +16,6 @@ router.get('/detail', authMiddleware.selectUser('PARTNER'), voucherController.ge
 
 router.get('/analyze', authMiddleware.selectUser('PARTNER'), voucherController.getAnalyzeVoucher);
 
+router.get('/count', authMiddleware.selectUser('PARTNER'), voucherController.getCountVouchers);
+
 module.exports = router;

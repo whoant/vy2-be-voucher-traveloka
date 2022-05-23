@@ -18,4 +18,6 @@ router.put('/state', authMiddleware.selectUser('USER'), paramMiddleware.paramTyp
 
 router.get('/can-buy', authMiddleware.selectUser('USER'), voucherUserController.getVoucherCanBuy);
 
+router.post('/buy', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, voucherUserController.postBuyVoucher);
+
 module.exports = router;

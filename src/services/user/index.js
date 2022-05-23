@@ -284,6 +284,10 @@ class UserService {
 
     }
 
+    async buyVoucher(code) {
+        
+    }
+
 }
 
 module.exports = UserService;

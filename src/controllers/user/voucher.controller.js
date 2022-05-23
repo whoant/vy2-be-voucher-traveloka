@@ -20,7 +20,7 @@ exports.checkCondition = catchAsync(async (req, res, next) => {
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
     const voucher = await userService.checkVoucherValid(code);
     const deduct = await userService.checkVoucherCondition(voucher, amount);
-    
+
     res.json({
         status: 'success',
         message: 'Đủ điền kiện !',
@@ -95,5 +95,17 @@ exports.getVoucherCanBuy = catchAsync(async (req, res, next) => {
         data: {
             vouchers
         }
+    });
+});
+
+exports.postBuyVoucher = catchAsync(async (req, res, next) => {
+    const { partnerTypeVoucher } = res.locals;
+    const { code } = req.body;
+    const userService = new UserService(res.locals.user, partnerTypeVoucher);
+    await userService.buyVoucher(code);
+
+    res.json({
+        status: 'success',
+        message: 'Order thành công !',
     });
 });

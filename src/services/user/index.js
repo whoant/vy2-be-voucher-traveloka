@@ -1,7 +1,7 @@
 const {
     Voucher,
     UserVoucher,
-    Condition, sequelize,
+    Condition, sequelize, TypeVoucher, PartnerTypeVoucher, User,
 } = require("../../models");
 const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
@@ -216,6 +216,72 @@ class UserService {
         if ((!userVoucher && !voucher.isBuy()) || (userVoucher && userVoucher.isOwned())) return voucher;
 
         throw new AppError('Voucher không tồn tại !', 500);
+    }
+
+    async getVoucherCanBuy(user, type) {
+        const typeVoucher = await TypeVoucher.findOne({
+            where: {
+                type,
+            },
+        });
+
+        const partnerTypeVoucher = await PartnerTypeVoucher.findAll({
+            where: {
+                typeVoucherId: typeVoucher.id
+            },
+            attributes: {
+                include: ['id']
+            },
+            raw: true,
+            nest: true
+        });
+
+        const listVouchersExist = await UserVoucher.findAll({
+            where: {
+                userId: user.id
+            },
+            attributes: {
+                include: ['voucherId']
+            }
+        });
+
+        const vouchers = await Voucher.findAll({
+            where: {
+                PartnerTypeVoucherId: {
+                    [Op.in]: partnerTypeVoucher.map(item => item.id)
+                },
+                amount: {
+                    [Op.gt]: 0
+                },
+                effectiveAt: {
+                    [Op.lte]: Date.now()
+                },
+                expirationAt: {
+                    [Op.gte]: Date.now()
+                },
+                id: {
+                    [Op.notIn]: listVouchersExist.map(item => item.voucherId)
+                }
+            },
+            include: {
+                model: Condition,
+                attributes: ['threshold', 'discount', 'maxAmount']
+            },
+            attributes: {
+                include: ['id', 'title', 'content', 'voucherCode', 'imageUrl', 'amount', 'effectiveAt', 'expirationAt']
+            },
+            raw: true,
+            nest: true
+        });
+
+        return vouchers.map(voucher => {
+            const { id, title, content, effectiveAt, expirationAt, amount, imageUrl } = voucher;
+            return {
+                id, title, content, effectiveAt, expirationAt, amount, imageUrl,
+                description: combineDescriptionVoucher(voucher.Condition)
+            }
+        });
+
     }
 
 }

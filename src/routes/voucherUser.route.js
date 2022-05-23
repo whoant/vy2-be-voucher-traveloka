@@ -16,4 +16,6 @@ router.post('/cancel-order', authMiddleware.selectUser('USER'), paramMiddleware.
 
 router.put('/state', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, voucherUserController.updateStateVoucher);
 
+router.get('/can-buy', authMiddleware.selectUser('USER'), voucherUserController.getVoucherCanBuy);
+
 module.exports = router;

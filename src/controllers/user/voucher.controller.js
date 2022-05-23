@@ -82,3 +82,18 @@ exports.updateStateVoucher = catchAsync(async (req, res, next) => {
         message: 'Sử dụng voucher thành công !'
     });
 });
+
+exports.getVoucherCanBuy = catchAsync(async (req, res, next) => {
+    const { user } = res.locals;
+    const { typeVoucher } = req.query;
+    const userService = new UserService('', '');
+    const vouchers = await userService.getVoucherCanBuy(user, typeVoucher);
+
+    res.json({
+        status: 'success',
+        message: 'Lấy danh sách thành công !',
+        data: {
+            vouchers
+        }
+    });
+});

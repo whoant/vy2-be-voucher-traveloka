@@ -1,18 +1,18 @@
 const { generateToken } = require("../../helpers/jwt.helper");
 const AppError = require('../../helpers/appError.helper');
 const catchAsync = require('../../helpers/catchAsync.helper');
-const { Partner, User } = require("../../models");
+const { User } = require("../../models");
 
 exports.login = catchAsync(async (req, res) => {
     const { username, password } = req.body;
-    const partner = await User.findOne({
+    const user = await User.findOne({
         where: {
             username, password
         }
     });
 
-    if (!partner) throw new AppError('Partner không tồn tại !');
-    const token = await generateToken(partner.id);
+    if (!user) throw new AppError('User không tồn tại !');
+    const token = await generateToken(user.id);
 
     res.json({
         status: 'success',

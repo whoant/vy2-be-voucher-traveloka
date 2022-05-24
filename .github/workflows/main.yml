@@ -16,8 +16,8 @@ jobs:
           echo DB_URI=${{secrets.DB_URI}}>> .env
           echo JWT_SECRET=${{secrets.JWT_SECRET}}>> .env
           echo REDIS_URI=${{secrets.REDIS_URI}}>> .env
-          echo REDIS_URI=${{secrets.PAYPAL_SECRET}}>> .env
-          echo REDIS_URI=${{secrets.PAYPAL_CLIENT_ID}}>> .env
+          echo PAYPAL_SECRET=${{secrets.PAYPAL_SECRET}}>> .env
+          echo PAYPAL_CLIENT_ID=${{secrets.PAYPAL_CLIENT_ID}}>> .env
       - name: Stop containers
         run: docker-compose down
       - name: Run containers

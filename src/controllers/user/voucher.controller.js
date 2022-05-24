@@ -1,6 +1,7 @@
 const catchAsync = require("../../helpers/catchAsync.helper");
 const UserService = require("../../services/user");
 const AppError = require("../../helpers/appError.helper");
+const clientRedis = require("../../config/redis");
 
 exports.getVoucherEligible = catchAsync(async (req, res, next) => {
     const { partnerTypeVoucher } = res.locals;
@@ -98,14 +99,47 @@ exports.getVoucherCanBuy = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.postBuyVoucher = catchAsync(async (req, res, next) => {
+exports.postPreBuyVoucher = catchAsync(async (req, res, next) => {
     const { partnerTypeVoucher } = res.locals;
     const { code } = req.body;
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
-    await userService.buyVoucher(code);
+    const transactionId = await userService.preBuyVoucher(code);
 
     res.json({
         status: 'success',
         message: 'Order thành công !',
+        data: {
+            transactionId
+        }
+    });
+});
+
+exports.postCheckBuyVoucher = catchAsync(async (req, res, next) => {
+    const { transactionId } = req.body;
+    const isExists = await clientRedis.exists(transactionId);
+    if (!isExists) throw new AppError("Giao dịch này không tồn tại !", 500);
+
+    const { amount, title, description, email } = JSON.parse(await clientRedis.get(transactionId));
+
+    res.json({
+        status: 'success',
+        message: 'Kiểm tra thành công !',
+        data: {
+            amount, title, description, email
+        }
+    });
+});
+
+exports.postBuyVoucher = catchAsync(async (req, res, next) => {
+    const { transactionId } = req.body;
+    const userService = new UserService(res.locals.user, null);
+    const paymentId = await userService.buyVoucher(transactionId);
+
+    res.json({
+        status: 'success',
+        message: 'Thực hiện thành công !',
+        data: {
+            paymentId
+        }
     });
 });

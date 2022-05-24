@@ -195,6 +195,18 @@
   "resolved" "https://registry.npmjs.org/@opentelemetry/api/-/api-1.1.0.tgz"
   "version" "1.1.0"
 
+"@paypal/checkout-server-sdk@^1.0.3":
+  "integrity" "sha512-UEdq8akEdMz0Vs4qoQFU2gMp8PpyE/HKyMwiZuK4vIWUKl8jfd1fWKjQN5cDFm9NkFUIp5U7h++rdMOVj9WMNA=="
+  "resolved" "https://registry.npmjs.org/@paypal/checkout-server-sdk/-/checkout-server-sdk-1.0.3.tgz"
+  "version" "1.0.3"
+  dependencies:
+    "@paypal/paypalhttp" "^1.0.1"
+
+"@paypal/paypalhttp@^1.0.1":
+  "integrity" "sha512-DC7AHxTT7drF6dUi3YaFdPVuT15sIkpD5H2eHmdtFgxM4UanS1o1ZDfMhR9mpxd8o+X6pz2r+EZVRRq+n1cssQ=="
+  "resolved" "https://registry.npmjs.org/@paypal/paypalhttp/-/paypalhttp-1.0.1.tgz"
+  "version" "1.0.1"
+
 "@redis/bloom@1.0.2":
   "integrity" "sha512-EBw7Ag1hPgFzdznK2PBblc1kdlj5B5Cw3XwI9/oG7tSn85/HKy3X9xHy/8tm/eNXJYHLXHJL/pkwBpFMVVefkw=="
   "resolved" "https://registry.npmjs.org/@redis/bloom/-/bloom-1.0.2.tgz"
@@ -449,11 +461,6 @@
   "version" "3.0.2"
   dependencies:
     "fill-range" "^7.0.1"
-
-"buffer-crc32@^0.2.3":
-  "integrity" "sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ=="
-  "resolved" "https://registry.npmjs.org/buffer-crc32/-/buffer-crc32-0.2.13.tgz"
-  "version" "0.2.13"
 
 "buffer-equal-constant-time@1.0.1":
   "integrity" "sha1-+OcRMvf/5uAaXJaXpMbz5I1cyBk="
@@ -995,11 +1002,6 @@
   "integrity" "sha1-FQStJSMVjKpA20onh8sBQRmU6k8="
   "resolved" "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
   "version" "1.0.0"
-
-"fsevents@~2.3.2":
-  "integrity" "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA=="
-  "resolved" "https://registry.npmjs.org/fsevents/-/fsevents-2.3.2.tgz"
-  "version" "2.3.2"
 
 "function-bind@^1.1.1":
   "integrity" "sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A=="
@@ -1778,14 +1780,6 @@
   "resolved" "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.1.7.tgz"
   "version" "0.1.7"
 
-"paypal-rest-sdk@^1.8.1":
-  "integrity" "sha512-Trj2GuPn10GqpICAxQh5wjxuDT7rq7DMOkvyatz05wI5xPGmqXN7UC0WfDSF9WSBs4YdcWZP0g+nY+sOdaFggw=="
-  "resolved" "https://registry.npmjs.org/paypal-rest-sdk/-/paypal-rest-sdk-1.8.1.tgz"
-  "version" "1.8.1"
-  dependencies:
-    "buffer-crc32" "^0.2.3"
-    "semver" "^5.0.3"
-
 "pg-connection-string@^2.5.0":
   "integrity" "sha512-r5o/V/ORTA6TmUnyWZR9nCj1klXCO2CEKNRlVuJptZe85QuhFayC7WeMic7ndayT5IRIR0S0xFxFi2ousartlQ=="
   "resolved" "https://registry.npmjs.org/pg-connection-string/-/pg-connection-string-2.5.0.tgz"
@@ -2029,7 +2023,7 @@
   dependencies:
     "semver" "^6.3.0"
 
-"semver@^5.0.3", "semver@^5.6.0", "semver@^5.7.1":
+"semver@^5.6.0", "semver@^5.7.1":
   "integrity" "sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ=="
   "resolved" "https://registry.npmjs.org/semver/-/semver-5.7.1.tgz"
   "version" "5.7.1"

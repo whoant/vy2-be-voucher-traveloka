@@ -1,10 +1,6 @@
-const paypal = require('paypal-rest-sdk');
-const { PAYPAL_MODE, PAYPAL_CLIENT_ID, PAYPAL_SECRET } = require('./index');
+const paypal = require('@paypal/checkout-server-sdk');
+const { PAYPAL_CLIENT_ID, PAYPAL_SECRET } = require('./index');
 
-paypal.configure({
-    mode: PAYPAL_MODE,
-    client_id: PAYPAL_CLIENT_ID,
-    client_secret: PAYPAL_SECRET
-});
+const Enviroment = process.env.NODE_ENV === 'production' ? paypal.core.LiveEnvironment : paypal.core.SandboxEnvironment;
 
-module.exports = paypal;
+module.exports = new paypal.core.PayPalHttpClient(new Enviroment(PAYPAL_CLIENT_ID, PAYPAL_SECRET));

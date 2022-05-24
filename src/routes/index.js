@@ -5,6 +5,7 @@ const giftCardPartnerRoute = require('./giftCardPartner.route');
 const authUserRoute = require('./authUser.route');
 const voucherUserRoute = require('./voucherUser.route');
 const typeVoucherRoute = require('./typeVoucher.route');
+const webhookRoute = require('./webhook.route');
 
 module.exports = app => {
     app.use('/api/v1/partner/auth', authPartnerRoute);
@@ -15,4 +16,6 @@ module.exports = app => {
     app.use('/api/v1/user/voucher', voucherUserRoute);
 
     app.use('/api/v1/type-voucher', typeVoucherRoute);
+
+    app.use('/api/v1/webhook', webhookRoute);
 };

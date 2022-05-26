@@ -11,7 +11,7 @@ const { STATE_PROMOTION } = require("../../constants");
 const { sha256 } = require("../../helpers/hash.helper");
 const { v4: uuidv4 } = require('uuid');
 const { VNDtoUSD } = require("../../helpers/currencyConverter.helper");
-const Paypal = require('../paypal');
+const Paypal = require('../Paypal');
 
 class UserService {
     constructor(user, partnerTypeVoucher) {

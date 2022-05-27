@@ -4,9 +4,9 @@ WORKDIR /app
 COPY package*.json ./
 COPY yarn.lock ./
 
-ARG NODE_ENV=production
+ARG NODE_ENV=development
 
-RUN yarn install --production
+RUN yarn install
 
 COPY . .
 

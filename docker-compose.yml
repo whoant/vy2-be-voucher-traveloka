@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file:
-      - .env.docker
+      - .env
     ports:
       - ${PORT}:${PORT}
     stdin_open: true

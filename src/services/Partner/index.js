@@ -145,6 +145,16 @@ class PartnerService {
         const voucher = await Voucher.getVoucherFromCode(code);
 
         const userVouchers = await this.getUserVoucherDone(voucher, ['amountAfter']);
+        const totalBuy = await UserVoucher.count({
+            where: {
+                voucherId: voucher.id,
+                createdAt: {
+                    [Op.lte]: sequelize.col('updatedAt')
+                }
+            },
+            raw: true,
+            nest: true
+        });
 
         const totalAmount = userVouchers.reduce((previousValue, currentValue) => {
             return previousValue + Number(currentValue.DetailUserVoucher.amountAfter);
@@ -153,6 +163,7 @@ class PartnerService {
         return {
             totalAmount,
             totalUse: userVouchers.length,
+            totalBuy
         };
 
     }

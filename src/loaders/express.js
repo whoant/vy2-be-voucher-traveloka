@@ -1,6 +1,6 @@
 const express = require('express');
 const helmet = require('helmet');
-const { handleError } = require("../helpers/response.helper");
+const responseHelper = require("../helpers/response.helper");
 const routes = require('../routes');
 const morgan = require("morgan");
 const AppError = require("../helpers/appError.helper");
@@ -17,6 +17,6 @@ module.exports = app => {
     app.all('*', (req, res, next) => {
         next(new AppError(`Can't find ${req.originalUrl} on this server !`, 400));
     });
-    app.use(handleError);
+    app.use(responseHelper);
 
 };

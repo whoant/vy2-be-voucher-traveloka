@@ -21,5 +21,5 @@ exports.createGiftCard = catchAsync(async (req, res, next) => {
     res.json({
         status: 'success',
         message: 'Tạo phiếu điểm thưởng thành công !'
-    })
+    });
 });

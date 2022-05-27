@@ -4,10 +4,10 @@ const catchAsync = require('../../helpers/catchAsync.helper');
 const { User } = require("../../models");
 
 exports.login = catchAsync(async (req, res) => {
-    const { username, password } = req.body;
+    const { email } = req.body;
     const user = await User.findOne({
         where: {
-            username, password
+            email
         }
     });
 
@@ -18,17 +18,18 @@ exports.login = catchAsync(async (req, res) => {
         status: 'success',
         message: 'Đăng nhập thành công !',
         data: {
-            token
+            token,
+            userId: user.userId
         }
     });
 });
 
 exports.createUser = catchAsync(async (req, res) => {
-    const { userId } = req.body;
+    const { userId, email } = req.body;
     await User.create({
         userId,
         encryptToken: 'OKEE',
-        email: 'vovanhoangtuan4.2@gmail.com'
+        email,
     });
 
     res.json({

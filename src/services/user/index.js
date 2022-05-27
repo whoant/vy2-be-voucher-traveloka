@@ -7,13 +7,11 @@ const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
 const { combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
 const clientRedis = require('../../config/redis');
-const PartnerTypeVoucherService = require("../PartnerTypeVoucher");
 const { STATE_PROMOTION } = require("../../constants");
 const { sha256 } = require("../../helpers/hash.helper");
 const { v4: uuidv4 } = require('uuid');
-const paypalClient = require("../../config/paypal");
-const paypal = require("@paypal/checkout-server-sdk");
 const { VNDtoUSD } = require("../../helpers/currencyConverter.helper");
+const Paypal = require('../Paypal');
 
 class UserService {
     constructor(user, partnerTypeVoucher) {
@@ -177,7 +175,7 @@ class UserService {
         const condition = await voucher.getCondition();
 
         if (Number(amount) < Number(condition.threshold)) {
-            throw new AppError("Không đủ điều kiện", 500);
+            throw new AppError("Không đủ điều kiện", 400);
         }
 
         let deduct = Number(condition.maxAmount);
@@ -190,7 +188,7 @@ class UserService {
     }
 
     generateVoucherId(code, partnerTypeVoucherId) {
-        return sha256(`${this.getUserId()}:${code}:${partnerTypeVoucherId}`);
+        return `${code}:${this.getUserId()}:${partnerTypeVoucherId}`;
     }
 
     async checkVoucherValid(code) {
@@ -207,7 +205,7 @@ class UserService {
             }
         });
 
-        if (!voucher) throw new AppError("Voucher không tồn tại !", 500);
+        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
         const userVoucher = await UserVoucher.findOne({
             where: {
                 voucherId: voucher.id,
@@ -218,7 +216,7 @@ class UserService {
 
         if ((!userVoucher && !voucher.isBuy()) || (userVoucher && userVoucher.isOwned())) return voucher;
 
-        throw new AppError('Voucher không tồn tại !', 500);
+        throw new AppError('Voucher không tồn tại !', 400);
     }
 
     async getVoucherCanBuy(user, type) {
@@ -280,17 +278,26 @@ class UserService {
             nest: true
         });
 
+        const countUserVoucher = await Promise.all(vouchers.map(voucher => {
+            return UserVoucher.count({
+                where: {
+                    voucherId: voucher.id
+                }
+            });
+        }));
 
-        return vouchers.map(voucher => {
-            const { id, title, content, effectiveAt, expirationAt, amount, imageUrl, voucherCode } = voucher;
-
-            return {
+        const res = [];
+        vouchers.forEach((voucher, index) => {
+            const { id, title, content, effectiveAt, expirationAt, amount, imageUrl, voucherCode, limitUse } = voucher;
+            if (countUserVoucher[index] >= limitUse) return;
+            res.push({
                 id, title, content, effectiveAt, expirationAt, amount, imageUrl, voucherCode,
                 description: combineDescriptionVoucher(voucher.Condition),
                 partnerId: voucher.PartnerTypeVoucher.partnerId
-            }
+            });
         });
 
+        return res;
     }
 
     async preBuyVoucher(code) {
@@ -315,7 +322,7 @@ class UserService {
             }],
         });
 
-        if (!voucher) throw new AppError("Voucher không tồn tại !", 500);
+        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
 
         const countUserVoucher = await UserVoucher.count({
             where: {
@@ -323,10 +330,10 @@ class UserService {
             }
         });
 
-        const countRedis = await clientRedis.keys(`${voucher.id}|*`);
+        const countRedis = await clientRedis.keys(this.createTransactionId(voucher.id, "*"));
 
         if (countUserVoucher + countRedis.length > voucher.limitUse) {
-            throw new AppError("Voucher này hiện tại đang hết !", 500);
+            throw new AppError("Voucher này hiện tại đang hết !", 400);
         }
 
         const userVoucher = await UserVoucher.findOne({
@@ -336,12 +343,12 @@ class UserService {
             }
         });
 
-        if (userVoucher) throw new AppError("Voucher này bạn đã sở hữu !", 500);
+        if (userVoucher) throw new AppError("Voucher này bạn đã sở hữu !", 400);
 
-        const transactionId = `${voucher.id}|${this.user.id}`;
+        const transactionId = this.createTransactionId(voucher.id, this.user.id);
 
         const isExists = await clientRedis.exists(transactionId);
-        if (isExists) throw new AppError("Bạn đang thực hiện giao dịch với voucher này !", 500);
+        if (isExists) throw new AppError("Bạn đang thực hiện giao dịch với voucher này !", 400);
 
         await clientRedis.set(transactionId, JSON.stringify({
             voucherId: voucher.id,
@@ -361,54 +368,25 @@ class UserService {
         return new Promise(async (resolve, reject) => {
             try {
                 const isExists = await clientRedis.exists(transactionId);
-                if (!isExists) throw new AppError("Giao dịch này không tồn tại !", 500);
+                if (!isExists) throw new AppError("Giao dịch này không tồn tại !", 400);
 
                 const { amount, title, voucherId, userId } = JSON.parse(await clientRedis.get(transactionId));
-
-                const request = new paypal.orders.OrdersCreateRequest();
-                request.prefer('return=representation');
-                request.requestBody({
-                    intent: 'CAPTURE',
-                    purchase_units: [
-                        {
-                            amount: {
-                                currency_code: 'USD',
-                                value: VNDtoUSD(amount),
-                                breakdown: {
-                                    item_total: {
-                                        currency_code: 'USD',
-                                        value: VNDtoUSD(amount)
-                                    }
-                                }
-                            },
-                            items: [
-                                {
-                                    name: title,
-                                    unit_amount: {
-                                        currency_code: 'USD',
-                                        value: VNDtoUSD(amount)
-                                    },
-                                    quantity: 1
-                                }
-                            ]
-                        }
-                    ]
-                });
-
-                const order = await paypalClient.execute(request);
-
-                const paymentId = order.result.id;
+                const paymentId = await Paypal.createOrder(title, VNDtoUSD(amount));
 
                 const ttl = await clientRedis.ttl(transactionId);
                 await clientRedis.set(paymentId, JSON.stringify({ amount, title, voucherId, userId }), {
                     EX: ttl
                 });
-                
+
                 resolve(paymentId);
             } catch (e) {
                 reject(e);
             }
         });
+    }
+
+    createTransactionId(voucherId, userId = '') {
+        return `buy:${voucherId}:${userId}`;
     }
 
 }

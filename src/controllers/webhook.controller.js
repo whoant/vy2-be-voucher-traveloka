@@ -10,7 +10,7 @@ exports.paymentSuccess = catchAsync(async (req, res) => {
     const isExists = await clientRedis.exists(paymentId);
 
     if (!isExists) {
-        throw new AppError("Giao dịch không tồn tại !", 500);
+        throw new AppError("Giao dịch không tồn tại !", 400);
     }
 
     const { voucherId, userId } = JSON.parse(await clientRedis.get(paymentId));
@@ -20,7 +20,7 @@ exports.paymentSuccess = catchAsync(async (req, res) => {
         voucherId
     });
     await newUserVoucher.createPayment({ transactionId: paymentId });
-    
+
     await Promise.all([clientRedis.del(paymentId), clientRedis.del(transactionId)]);
 
     res.json({

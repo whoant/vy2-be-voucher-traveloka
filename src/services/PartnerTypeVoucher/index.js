@@ -16,7 +16,7 @@ class PartnerTypeVoucherService {
             }
         });
 
-        if (!partnerVoucher) throw new AppError('Partner không tồn tại !', 500);
+        if (!partnerVoucher) throw new AppError('Partner không tồn tại !', 400);
         this.partnerVoucher = partnerVoucher;
 
         return partnerVoucher;
@@ -32,7 +32,7 @@ class PartnerTypeVoucherService {
                 type
             }
         });
-        if (!typeVoucher) throw new AppError('Loại voucher không tồn tại !', 500);
+        if (!typeVoucher) throw new AppError('Loại voucher không tồn tại !', 400);
 
         return typeVoucher;
     }

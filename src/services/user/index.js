@@ -175,7 +175,7 @@ class UserService {
         const condition = await voucher.getCondition();
 
         if (Number(amount) < Number(condition.threshold)) {
-            throw new AppError("Không đủ điều kiện", 500);
+            throw new AppError("Không đủ điều kiện", 400);
         }
 
         let deduct = Number(condition.maxAmount);
@@ -205,7 +205,7 @@ class UserService {
             }
         });
 
-        if (!voucher) throw new AppError("Voucher không tồn tại !", 500);
+        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
         const userVoucher = await UserVoucher.findOne({
             where: {
                 voucherId: voucher.id,
@@ -216,7 +216,7 @@ class UserService {
 
         if ((!userVoucher && !voucher.isBuy()) || (userVoucher && userVoucher.isOwned())) return voucher;
 
-        throw new AppError('Voucher không tồn tại !', 500);
+        throw new AppError('Voucher không tồn tại !', 400);
     }
 
     async getVoucherCanBuy(user, type) {
@@ -322,7 +322,7 @@ class UserService {
             }],
         });
 
-        if (!voucher) throw new AppError("Voucher không tồn tại !", 500);
+        if (!voucher) throw new AppError("Voucher không tồn tại !", 400);
 
         const countUserVoucher = await UserVoucher.count({
             where: {
@@ -333,7 +333,7 @@ class UserService {
         const countRedis = await clientRedis.keys(this.createTransactionId(voucher.id, "*"));
 
         if (countUserVoucher + countRedis.length > voucher.limitUse) {
-            throw new AppError("Voucher này hiện tại đang hết !", 500);
+            throw new AppError("Voucher này hiện tại đang hết !", 400);
         }
 
         const userVoucher = await UserVoucher.findOne({
@@ -343,12 +343,12 @@ class UserService {
             }
         });
 
-        if (userVoucher) throw new AppError("Voucher này bạn đã sở hữu !", 500);
+        if (userVoucher) throw new AppError("Voucher này bạn đã sở hữu !", 400);
 
         const transactionId = this.createTransactionId(voucher.id, this.user.id);
 
         const isExists = await clientRedis.exists(transactionId);
-        if (isExists) throw new AppError("Bạn đang thực hiện giao dịch với voucher này !", 500);
+        if (isExists) throw new AppError("Bạn đang thực hiện giao dịch với voucher này !", 400);
 
         await clientRedis.set(transactionId, JSON.stringify({
             voucherId: voucher.id,
@@ -368,7 +368,7 @@ class UserService {
         return new Promise(async (resolve, reject) => {
             try {
                 const isExists = await clientRedis.exists(transactionId);
-                if (!isExists) throw new AppError("Giao dịch này không tồn tại !", 500);
+                if (!isExists) throw new AppError("Giao dịch này không tồn tại !", 400);
 
                 const { amount, title, voucherId, userId } = JSON.parse(await clientRedis.get(transactionId));
                 const paymentId = await Paypal.createOrder(title, VNDtoUSD(amount));

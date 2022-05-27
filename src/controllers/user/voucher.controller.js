@@ -33,7 +33,7 @@ exports.buyVoucher = catchAsync(async (req, res, next) => {
     const { typeVoucher, code } = req.body;
     const userService = new UserService(res.locals.user);
     const userVoucher = await userService.buyVoucher(code, typeVoucher);
-    if (!userVoucher) throw new AppError("Voucher này đang được áp cho giao dịch khác", 500);
+    if (!userVoucher) throw new AppError("Voucher này đang được áp cho giao dịch khác", 400);
 
     res.json({
         status: 'success',
@@ -48,7 +48,7 @@ exports.preOrder = catchAsync(async (req, res, next) => {
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
     const preOrder = await userService.preOrder(req.body);
 
-    if (!preOrder) throw new AppError("Voucher này đang được áp cho giao dịch khác", 500);
+    if (!preOrder) throw new AppError("Voucher này đang được áp cho giao dịch khác", 400);
 
     res.json({
         status: 'success',
@@ -76,7 +76,7 @@ exports.updateStateVoucher = catchAsync(async (req, res, next) => {
     const { orderId } = req.body;
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
     const stateVoucher = await userService.updateStateVoucher(orderId);
-    if (!stateVoucher) throw new AppError("Giao dịch không tồn tại", 500);
+    if (!stateVoucher) throw new AppError("Giao dịch không tồn tại", 400);
 
     res.json({
         status: 'success',
@@ -117,7 +117,7 @@ exports.postPreBuyVoucher = catchAsync(async (req, res, next) => {
 exports.postCheckBuyVoucher = catchAsync(async (req, res, next) => {
     const { transactionId } = req.body;
     const isExists = await clientRedis.exists(transactionId);
-    if (!isExists) throw new AppError("Giao dịch này không tồn tại !", 500);
+    if (!isExists) throw new AppError("Giao dịch này không tồn tại !", 400);
 
     const { amount, title, description, email } = JSON.parse(await clientRedis.get(transactionId));
 

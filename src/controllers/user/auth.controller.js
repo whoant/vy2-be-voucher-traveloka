@@ -11,7 +11,7 @@ exports.login = catchAsync(async (req, res) => {
         }
     });
 
-    if (!user) throw new AppError('User không tồn tại !');
+    if (!user) throw new AppError('Tài khoản không tồn tại !');
     const token = await generateToken(user.id);
 
     res.json({
@@ -19,7 +19,8 @@ exports.login = catchAsync(async (req, res) => {
         message: 'Đăng nhập thành công !',
         data: {
             token,
-            userId: user.userId
+            userId: user.userId,
+            email
         }
     });
 });

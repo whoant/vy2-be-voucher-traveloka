@@ -188,7 +188,7 @@ class UserService {
     }
 
     generateVoucherId(code, partnerTypeVoucherId) {
-        return sha256(`${this.getUserId()}:${code}:${partnerTypeVoucherId}`);
+        return `${code}:${this.getUserId()}:${partnerTypeVoucherId}`;
     }
 
     async checkVoucherValid(code) {

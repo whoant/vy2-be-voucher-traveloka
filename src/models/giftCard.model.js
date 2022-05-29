@@ -86,18 +86,6 @@ module.exports = (sequelize) => {
                     msg: 'Điểm đổi không hợp lệ !'
                 }
             }
-        },
-        description: {
-            type: DataTypes.VIRTUAL,
-            get() {
-                const formatThreshold = formatMoney(this.threshold);
-                const formatMaxAmount = formatMoney(this.maxAmount);
-                if (Number(this.discount) === 0) {
-                    return `Đơn hàng trị giá trên ${formatThreshold}đ sẽ nhận được giảm giá ${formatMaxAmount}đ`;
-                }
-
-                return `Đơn hàng trị giá trên ${formatThreshold}đ sẽ nhận được giảm giá ${this.discount}%, không vượt quá ${formatMaxAmount}đ`;
-            }
         }
     }, {
         indexes: [

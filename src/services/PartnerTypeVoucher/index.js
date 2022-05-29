@@ -37,6 +37,10 @@ class PartnerTypeVoucherService {
         return typeVoucher;
     }
 
+    createGiftCard(gift) {
+        return this.partnerVoucher.createGiftCard(gift);
+    }
+
     getId() {
         return this.partnerVoucher.id;
     }

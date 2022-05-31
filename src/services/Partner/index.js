@@ -56,30 +56,6 @@ class PartnerService {
         return newVoucher.createCondition(voucher);
     }
 
-    async getGiftCards() {
-        const giftCards = await GiftCard.findAll({
-            where: {
-                partnerId: this.getPartnerId(),
-            },
-            attributes: {
-                exclude: ['createdAt', 'updatedAt', 'partnerId']
-            },
-            raw: true,
-            nest: true
-        });
-
-        return giftCards.map(giftCard => {
-            return {
-                ...giftCard,
-                description: combineDescriptionGiftCard(giftCard)
-            }
-        });
-    }
-
-    createGiftCard(giftCard) {
-        return this.partner.createGiftCard(giftCard);
-    }
-
     async getTypeVouchers() {
         const listTypeVoucherId = (await PartnerTypeVoucher.findAll({
             where: {
@@ -205,6 +181,33 @@ class PartnerService {
             raw: true,
             nest: true
         });
+    }
+
+    async getGiftCards() {
+        const partnerVoucher = await this.getPartner();
+        const giftCards = await GiftCard.findAll({
+            where: {
+                PartnerTypeId: partnerVoucher.getId(),
+            },
+            attributes: {
+                exclude: ['createdAt', 'updatedAt', 'partnerTypeId']
+            },
+            raw: true,
+            nest: true
+        });
+
+
+        return giftCards.map(giftCard => {
+            return {
+                ...giftCard,
+                description: combineDescriptionVoucher(giftCard)
+            }
+        });
+    }
+
+    async createGiftCard(giftCard) {
+        const partnerGift = await this.getPartner();
+        return partnerGift.createGiftCard(giftCard);
     }
 
 }

@@ -36,9 +36,10 @@ module.exports = (err, req, res, next) => {
         error.message = err.message;
 
         if (error.name === 'SequelizeUniqueConstraintError') error = handleError.handleUniqueErrorDB(error);
+        else if (error.name === 'JsonWebTokenError') error = handleError.handleJwtError(error);
 
         sendErrorProd(error, req, res);
     }
-    
+
     next();
 };

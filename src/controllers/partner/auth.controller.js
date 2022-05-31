@@ -1,4 +1,4 @@
-const { generateToken } = require("../../helpers/jwt.helper");
+const { generateToken, verifyToken } = require("../../helpers/jwt.helper");
 const AppError = require('../../helpers/appError.helper');
 const catchAsync = require('../../helpers/catchAsync.helper');
 const { Partner, TypeVoucher, PartnerTypeVoucher } = require("../../models");
@@ -52,3 +52,22 @@ exports.createPartner = catchAsync(async (req, res) => {
     });
 });
 
+exports.loginUsingToken = catchAsync(async (req, res) => {
+    const { token } = req.query;
+    const { data } = await verifyToken(token);
+    const partner = await Partner.findByPk(data.id);
+
+    if (!partner) {
+        throw new AppError('Bạn không đủ quyền để truy cập !', 403);
+    }
+
+    res.json({
+        status: 'success',
+        message: 'Đăng nhập thành công !',
+        data: {
+            token,
+            name: partner.name,
+            email: partner.email
+        }
+    });
+});

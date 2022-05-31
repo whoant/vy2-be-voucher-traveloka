@@ -2,7 +2,8 @@ const catchAsync = require('../../helpers/catchAsync.helper');
 const PartnerService = require("../../services/Partner");
 
 exports.getGiftCards = catchAsync(async (req, res, next) => {
-    const partner = new PartnerService(res.locals.partner);
+    const { type } = req.query;
+    const partner = new PartnerService(res.locals.partner, type);
     const giftCards = await partner.getGiftCards();
 
     res.json({
@@ -15,7 +16,8 @@ exports.getGiftCards = catchAsync(async (req, res, next) => {
 });
 
 exports.createGiftCard = catchAsync(async (req, res, next) => {
-    const partner = new PartnerService(res.locals.partner);
+    const { type } = req.body;
+    const partner = new PartnerService(res.locals.partner, type);
     await partner.createGiftCard(req.body);
 
     res.json({

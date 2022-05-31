@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development nodemon src/app.js",
-    "start": "NODE_ENV=production node src/app.js"
+    "start": "node src/app.js"
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",

@@ -7,7 +7,7 @@ exports.login = catchAsync(async (req, res) => {
     const { username, password } = req.body;
     const partner = await Partner.findOne({
         where: {
-            username, password
+            username
         }
     });
 

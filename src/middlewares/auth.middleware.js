@@ -25,8 +25,15 @@ exports.selectUser = permission => {
         }
 
         if (permission === 'USER') {
-            const userId = req.get('user_id');
-            if (!userId) throw new AppError('Vui lòng nhập đủ thông tin !', 400);
+            let userId = req.get('user_id');
+            const token = req.get('authorization');
+            if (!userId && (!token || token.split(' ')[0] !== "Bearer")) throw new AppError('Bạn không đủ quyền để truy cập !', 403);
+
+            if (!userId) {
+                const { data } = await verifyToken(token.split(' ')[1]);
+                userId = data.userId;
+            }
+
             const user = await User.findOne({
                 where: {
                     userId

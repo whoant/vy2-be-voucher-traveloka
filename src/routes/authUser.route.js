@@ -9,4 +9,6 @@ router.post('/login', authMiddleware.validateUser, authUserController.login);
 
 router.post('/register', authMiddleware.validateUser, authUserController.createUser);
 
+router.get('/login-token', authUserController.loginUsingToken);
+
 module.exports = router;

@@ -6,6 +6,8 @@ const authMiddleware = require('../middlewares/auth.middleware');
 const voucherUserController = require('../controllers/user/voucher.controller');
 const paramMiddleware = require("../middlewares/param.middleware");
 
+router.get('/owner', authMiddleware.selectUser('USER'), voucherUserController.getVoucherOwned);
+
 router.get('/eligible', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, voucherUserController.getVoucherEligible);
 
 router.get('/check-condition', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, voucherUserController.checkCondition);

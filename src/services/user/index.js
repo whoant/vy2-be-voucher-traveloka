@@ -12,11 +12,94 @@ const { sha256 } = require("../../helpers/hash.helper");
 const { v4: uuidv4 } = require('uuid');
 const { VNDtoUSD } = require("../../helpers/currencyConverter.helper");
 const Paypal = require('../Paypal');
+const _ = require('lodash');
 
 class UserService {
     constructor(user, partnerTypeVoucher) {
         this.user = user;
         this.partnerTypeVoucher = partnerTypeVoucher;
+    }
+
+    async getVoucherOwned(type) {
+        let conditionUserVoucher = {
+            userId: this.user.id,
+            state: STATE_PROMOTION.OWNED,
+        };
+
+        let conditionVoucher = {}
+
+        if (type === 'available') {
+            conditionVoucher = {
+                ...conditionVoucher,
+                effectiveAt: {
+                    [Op.lte]: Date.now()
+                },
+                expirationAt: {
+                    [Op.gte]: Date.now()
+                },
+            };
+
+        } else if (type === 'expired') {
+            conditionVoucher = {
+                ...conditionVoucher,
+                expirationAt: {
+                    [Op.lt]: Date.now()
+                },
+            }
+        } else if (type === 'used') {
+            conditionUserVoucher.state = STATE_PROMOTION.DONE;
+        }
+
+        const userVouchers = await UserVoucher.findAll({
+            where: conditionUserVoucher,
+            nest: true,
+            raw: true
+        });
+
+        const listVouchers = await Voucher.findAll({
+            where: {
+                id: {
+                    [Op.in]: userVouchers.map(userVoucher => userVoucher.voucherId)
+                },
+                ...conditionVoucher
+            },
+            include: [{
+                model: Condition,
+                attributes: ['threshold', 'discount', 'maxAmount']
+            }, {
+                model: PartnerTypeVoucher,
+            }],
+            attributes: {
+                exclude: ['updatedAt', 'imageUrl', 'limitUse', 'id']
+            }
+        });
+
+        const listTypeVouchers = await TypeVoucher.findAll({
+            nest: true,
+            raw: true,
+            attributes: [
+                ['id', 'typeVoucherId'],
+                'type'
+            ]
+        });
+
+        const mapTypeVouchers = new Map();
+        listTypeVouchers.forEach(item => {
+            mapTypeVouchers.set(item.typeVoucherId, item.type);
+        });
+
+        const vouchers = listVouchers.map(voucher => {
+            const { title, content, effectiveAt, voucherCode, amount, expirationAt, createdAt } = voucher;
+            const { typeVoucherId } = voucher.PartnerTypeVoucher;
+
+            return {
+                title, content, effectiveAt, voucherCode, amount, expirationAt, createdAt,
+                type: mapTypeVouchers.get(typeVoucherId),
+                description: combineDescriptionVoucher(voucher.Condition)
+            };
+        })
+
+        return vouchers;
     }
 
     async getVoucherEligible() {

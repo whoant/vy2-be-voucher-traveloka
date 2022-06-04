@@ -3,6 +3,18 @@ const UserService = require("../../services/user");
 const AppError = require("../../helpers/appError.helper");
 const clientRedis = require("../../config/redis");
 
+exports.getVoucherOwned = catchAsync(async (req, res, next) => {
+    const { type } = req.query;
+    const userService = new UserService(res.locals.user, null);
+    const vouchers = await userService.getVoucherOwned(type);
+
+    res.json({
+        status: 'success',
+        message: 'Lấy danh sách thành công !',
+        data: { vouchers }
+    });
+});
+
 exports.getVoucherEligible = catchAsync(async (req, res, next) => {
     const { partnerTypeVoucher } = res.locals;
     const userService = new UserService(res.locals.user, partnerTypeVoucher);

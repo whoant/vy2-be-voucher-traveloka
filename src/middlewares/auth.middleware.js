@@ -13,8 +13,9 @@ exports.selectUser = permission => {
                 throw new AppError('Bạn không đủ quyền để truy cập !', 403);
             }
 
-            const { data } = await verifyToken(token.split(' ')[1]);
-            const partner = await Partner.findByPk(data.id);
+            const data = await verifyToken(token.split(' ')[1]);
+
+            const partner = await Partner.findByPk(data.sub);
 
             if (!partner) {
                 throw new AppError('Bạn không đủ quyền để truy cập !', 403);
@@ -30,8 +31,8 @@ exports.selectUser = permission => {
             if (!userId && (!token || token.split(' ')[0] !== "Bearer")) throw new AppError('Bạn không đủ quyền để truy cập !', 403);
 
             if (!userId) {
-                const { data } = await verifyToken(token.split(' ')[1]);
-                userId = data.userId;
+                const data = await verifyToken(token.split(' ')[1]);
+                userId = data.sub;
             }
 
             const user = await User.findOne({

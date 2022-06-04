@@ -13,7 +13,7 @@ exports.login = catchAsync(async (req, res) => {
     });
 
     if (!partner) throw new AppError('Partner không tồn tại !');
-    const token = await generateToken({ id: partner.id });
+    const token = await generateToken({ sub: partner.id });
 
     res.json({
         status: 'success',

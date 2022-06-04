@@ -5,11 +5,19 @@ const routes = require('../routes');
 const morgan = require("morgan");
 const AppError = require("../helpers/appError.helper");
 const cors = require('cors');
+const telegramLogger = require('express-notify-telegram');
+const { TOKEN_TELEGRAM, GROUP_TELEGRAM } = require("../config");
 
 module.exports = app => {
+
     if (process.env.NODE_ENV === 'development') {
         app.use(morgan('dev'));
     }
+
+    app.use(telegramLogger({
+        botToken: TOKEN_TELEGRAM,
+        chatId: GROUP_TELEGRAM
+    }));
     app.use(helmet());
     app.use(express.json());
     app.use(cors());
@@ -18,5 +26,4 @@ module.exports = app => {
         next(new AppError(`Can't find ${req.originalUrl} on this server !`, 400));
     });
     app.use(responseHelper);
-
 };

@@ -19,7 +19,11 @@ jobs:
           echo REDIS_URI=${{secrets.REDIS_URI}}>> .env
           echo PAYPAL_SECRET=${{secrets.PAYPAL_SECRET}}>> .env
           echo PAYPAL_CLIENT_ID=${{secrets.PAYPAL_CLIENT_ID}}>> .env
+          echo TOKEN_TELEGRAM=${{secrets.TOKEN_TELEGRAM}}>> .env
+          echo GROUP_TELEGRAM=${{secrets.GROUP_TELEGRAM}}>> .env
+      - name: Build containers
+        run: docker-compose build
       - name: Stop containers
         run: docker-compose down
       - name: Run containers
-        run: docker-compose up -d --build
+        run: docker-compose up -d

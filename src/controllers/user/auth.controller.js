@@ -41,16 +41,20 @@ exports.createUser = catchAsync(async (req, res) => {
 
 exports.loginUsingToken = catchAsync(async (req, res) => {
     const { token } = req.query;
-    const { data } = await verifyToken(token);
+    const data = await verifyToken(token);
 
-    const user = await User.findOne({
+    let user = await User.findOne({
         where: {
-            userId: data.userId
+            userId: data.sub
         }
     });
 
     if (!user) {
-        throw new AppError('Bạn không đủ quyền để truy cập !', 403);
+        user = await User.create({
+            userId: data.sub,
+            encryptToken: 'OKEE',
+            email: data.email
+        });
     }
 
     res.json({

@@ -2,6 +2,7 @@ const { generateToken, verifyToken } = require("../../helpers/jwt.helper");
 const AppError = require('../../helpers/appError.helper');
 const catchAsync = require('../../helpers/catchAsync.helper');
 const { Partner, TypeVoucher, PartnerTypeVoucher } = require("../../models");
+const { SERVICE_PROFILE } = require("../../constants");
 
 exports.login = catchAsync(async (req, res) => {
     const { username, password } = req.body;
@@ -54,11 +55,34 @@ exports.createPartner = catchAsync(async (req, res) => {
 
 exports.loginUsingToken = catchAsync(async (req, res) => {
     const { token } = req.query;
-    const { data } = await verifyToken(token);
-    const partner = await Partner.findByPk(data.id);
+    const { sub, username, email, services, name } = await verifyToken(token);
+
+    let partner = await Partner.findByPk(sub);
 
     if (!partner) {
-        throw new AppError('Bạn không đủ quyền để truy cập !', 403);
+        partner = await Partner.create({
+            username: username,
+            password: username,
+            email, name: name || '',
+            secretKey: '',
+            id: sub
+        });
+
+        await Promise.all(services.map(async type => {
+            const typeVoucher = await TypeVoucher.findOne({
+                where: {
+                    type: SERVICE_PROFILE[type]
+                }
+            });
+
+            if (typeVoucher) {
+                return PartnerTypeVoucher.create({
+                    partnerId: partner.id,
+                    typeVoucherId: typeVoucher.id,
+                })
+            }
+        }));
+
     }
 
     res.json({

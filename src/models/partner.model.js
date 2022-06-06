@@ -1,6 +1,7 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { sha256 } = require("../helpers/hash.helper");
 const { randomString } = require("../helpers/utilities.helper");
+const { APP_ID } = require("../constants");
 
 module.exports = (sequelize) => {
     return sequelize.define('Partner', {
@@ -42,7 +43,18 @@ module.exports = (sequelize) => {
                 msg: 'Mã bí mật đã tồn tại !'
             }
         },
+        appId: {
+            allowNull: false,
+            type: DataTypes.ENUM,
+            values: Object.values(APP_ID),
+        }
     }, {
+        indexes: [
+            {
+                unique: true,
+                fields: ['email', 'username']
+            }
+        ],
         hooks: {
             beforeCreate(record, options) {
                 record.dataValues.secretKey = randomString(10);

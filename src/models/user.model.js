@@ -1,4 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
+const { APP_ID } = require("../constants");
 
 module.exports = (sequelize) => {
     return sequelize.define('User', {
@@ -13,8 +14,8 @@ module.exports = (sequelize) => {
             allowNull: false,
             unique: {
                 args: true,
-                msg: 'User này đã tồn tại !'
-            }
+                msg: 'UserId đã tồn tại !'
+            },
         },
         encryptToken: {
             type: DataTypes.STRING,
@@ -28,7 +29,23 @@ module.exports = (sequelize) => {
                     args: true,
                     msg: 'Email không hợp lệ !'
                 }
-            }
+            },
+            unique: {
+                args: true,
+                msg: 'Email đã tồn tại !'
+            },
         },
+        appId: {
+            allowNull: false,
+            type: DataTypes.ENUM,
+            values: Object.values(APP_ID),
+        }
+    }, {
+        indexes: [
+            {
+                unique: true,
+                fields: ['email', 'userId']
+            }
+        ]
     });
 };

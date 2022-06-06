@@ -4,10 +4,11 @@ const router = express.Router();
 
 const authUserController = require('../controllers/user/auth.controller');
 const authMiddleware = require("../middlewares/auth.middleware");
+const appCodeMiddleware = require("../middlewares/appCode.middleware");
 
 router.post('/login', authMiddleware.validateUser, authUserController.login);
 
-router.post('/register', authMiddleware.validateUser, authUserController.createUser);
+router.post('/register', appCodeMiddleware.checkAppId, authMiddleware.validateUser, authUserController.createUser);
 
 router.get('/login-token', authUserController.loginUsingToken);
 

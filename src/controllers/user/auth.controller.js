@@ -26,11 +26,13 @@ exports.login = catchAsync(async (req, res) => {
 });
 
 exports.createUser = catchAsync(async (req, res) => {
+    const { appId } = res.locals;
     const { userId, email } = req.body;
     await User.create({
         userId,
         encryptToken: 'OKEE',
         email,
+        appId
     });
 
     res.json({

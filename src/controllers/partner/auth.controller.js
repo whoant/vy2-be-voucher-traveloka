@@ -27,9 +27,10 @@ exports.login = catchAsync(async (req, res) => {
 });
 
 exports.createPartner = catchAsync(async (req, res) => {
+    const { appId } = res.locals;
     const { username, password, typeVouchers, email, name } = req.body;
     const newPartner = await Partner.create({
-        username, password, email, name, secretKey: ''
+        username, password, email, name, secretKey: '', appId
     });
 
     await Promise.all(typeVouchers.map(async type => {

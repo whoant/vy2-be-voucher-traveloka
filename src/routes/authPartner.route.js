@@ -10,6 +10,6 @@ router.post('/login', authMiddleware.validatePartner, authController.login);
 
 router.post('/register', appCodeMiddleware.checkAppId, authMiddleware.validatePartner, authController.createPartner);
 
-router.get('/login-token', authController.loginUsingToken);
+router.get('/login-token', appCodeMiddleware.checkAppId, authController.loginUsingToken);
 
 module.exports = router;

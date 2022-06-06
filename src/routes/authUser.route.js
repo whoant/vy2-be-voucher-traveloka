@@ -10,6 +10,6 @@ router.post('/login', authMiddleware.validateUser, authUserController.login);
 
 router.post('/register', appCodeMiddleware.checkAppId, authMiddleware.validateUser, authUserController.createUser);
 
-router.get('/login-token', authUserController.loginUsingToken);
+router.get('/login-token', appCodeMiddleware.checkAppId, authUserController.loginUsingToken);
 
 module.exports = router;

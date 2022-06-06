@@ -42,6 +42,7 @@ exports.createUser = catchAsync(async (req, res) => {
 });
 
 exports.loginUsingToken = catchAsync(async (req, res) => {
+    const { appId } = res.locals;
     const { token } = req.query;
     const data = await verifyToken(token);
 
@@ -55,7 +56,8 @@ exports.loginUsingToken = catchAsync(async (req, res) => {
         user = await User.create({
             userId: data.sub,
             encryptToken: 'OKEE',
-            email: data.email
+            email: data.email,
+            appId
         });
     }
 

@@ -55,6 +55,7 @@ exports.createPartner = catchAsync(async (req, res) => {
 });
 
 exports.loginUsingToken = catchAsync(async (req, res) => {
+    const { appId } = res.locals;
     const { token } = req.query;
     const { sub, username, email, services, name } = await verifyToken(token);
 
@@ -66,7 +67,8 @@ exports.loginUsingToken = catchAsync(async (req, res) => {
             password: username,
             email, name: name || '',
             secretKey: '',
-            id: sub
+            id: sub,
+            appId
         });
 
         await Promise.all(services.map(async type => {

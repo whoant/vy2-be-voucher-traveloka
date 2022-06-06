@@ -41,19 +41,6 @@ exports.checkCondition = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.buyVoucher = catchAsync(async (req, res, next) => {
-    const { typeVoucher, code } = req.body;
-    const userService = new UserService(res.locals.user);
-    const userVoucher = await userService.buyVoucher(code, typeVoucher);
-    if (!userVoucher) throw new AppError("Voucher này đang được áp cho giao dịch khác", 400);
-
-    res.json({
-        status: 'success',
-        message: 'Vui lòng thực hiện giao dịch !',
-        data: { ...userVoucher }
-    });
-});
-
 exports.preOrder = catchAsync(async (req, res, next) => {
     const { partnerTypeVoucher } = res.locals;
 

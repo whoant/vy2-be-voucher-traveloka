@@ -1,7 +1,7 @@
 const {
     Voucher,
     UserVoucher,
-    Condition, sequelize, TypeVoucher, PartnerTypeVoucher, User, Partner,
+    Condition, sequelize, TypeVoucher, PartnerTypeVoucher, User, Partner, UserGiftCard, GiftCard,
 } = require("../../models");
 const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
@@ -13,6 +13,8 @@ const { v4: uuidv4 } = require('uuid');
 const { VNDtoUSD } = require("../../helpers/currencyConverter.helper");
 const Paypal = require('../Paypal');
 const _ = require('lodash');
+const moment = require('moment-timezone');
+moment().tz("Asia/Ho_Chi_Minh").format();
 
 class UserService {
     constructor(user, partnerTypeVoucher) {
@@ -135,16 +137,18 @@ class UserService {
 
         const listVoucherDiff = [...new Set([...listVoucherDone, ...listVoucherNotBuy])]
 
+        const timeCurrent = moment();
+
         const vouchers = await Voucher.findAll({
             where: {
                 id: {
                     [Op.notIn]: listVoucherDiff
                 },
                 effectiveAt: {
-                    [Op.lte]: Date.now()
+                    [Op.lte]: timeCurrent
                 },
                 expirationAt: {
-                    [Op.gte]: Date.now()
+                    [Op.gte]: timeCurrent
                 },
                 PartnerTypeVoucherId: this.partnerTypeVoucher.getId()
             },
@@ -326,8 +330,11 @@ class UserService {
             },
             attributes: {
                 include: ['voucherId']
-            }
+            },
+            raw: true
         });
+
+        const timeCurrent = moment();
 
         const vouchers = await Voucher.findAll({
             where: {
@@ -338,10 +345,10 @@ class UserService {
                     [Op.gt]: 0
                 },
                 effectiveAt: {
-                    [Op.lte]: Date.now()
+                    [Op.lte]: timeCurrent
                 },
                 expirationAt: {
-                    [Op.gte]: Date.now()
+                    [Op.gte]: timeCurrent
                 },
                 id: {
                     [Op.notIn]: listVouchersExist.map(item => item.voucherId)
@@ -470,6 +477,112 @@ class UserService {
 
     createTransactionId(voucherId, userId = '') {
         return `buy:${voucherId}:${userId}`;
+    }
+
+    async getGiftCardEligible() {
+    }
+
+    async getGiftCanExchange(type) {
+
+        const typeVoucher = await TypeVoucher.findOne({
+            where: {
+                type,
+            },
+        });
+
+        const partnerTypeId = (await PartnerTypeVoucher.findAll({
+            where: {
+                typeVoucherId: typeVoucher.id
+            },
+            attributes: {
+                include: ['id']
+            },
+            raw: true,
+            nest: true
+        })).map(({ id }) => id);
+
+        const giftCardsDone = (await UserGiftCard.findAll({
+            where: {
+                userId: this.getUserId(),
+            },
+            attributes: ['giftCardId'],
+            raw: true
+        })).map(({ giftCardId }) => giftCardId);
+
+        const timeCurrent = moment();
+
+        const giftCards = await GiftCard.findAll({
+            where: {
+                id: {
+                    [Op.notIn]: giftCardsDone
+                },
+                effectiveAt: {
+                    [Op.lte]: timeCurrent
+                },
+                expirationAt: {
+                    [Op.gte]: timeCurrent
+                },
+                partnerTypeId: {
+                    [Op.in]: partnerTypeId
+                }
+            },
+            raw: true,
+            nest: true
+        });
+
+        const countUserGiftCard = await Promise.all(giftCards.map(giftCard => {
+            return UserGiftCard.count({
+                where: {
+                    giftCardId: giftCard.id
+                }
+            });
+        }));
+
+        const res = [];
+        giftCards.forEach((giftCard, index) => {
+            const {
+                title,
+                content,
+                effectiveAt,
+                expirationAt,
+                pointExchange,
+                imageUrl,
+                giftCardCode,
+                limitUse
+            } = giftCard;
+            if (countUserGiftCard[index] >= limitUse) return;
+            res.push({
+                title, content, effectiveAt, expirationAt, pointExchange, imageUrl, giftCardCode,
+                description: combineDescriptionVoucher(giftCard),
+            });
+        });
+
+        return res;
+    }
+
+    async exchangeGift(giftCardCode) {
+        const pointCurrent = 100;
+
+        const giftCardItem = await GiftCard.findOne({
+            where: {
+                giftCardCode
+            },
+        });
+
+        if (giftCardItem.pointExchange > pointCurrent) throw new AppError("Số điểm của bạn không đủ để đổi", 400);
+
+        const countUserGiftCard = await UserGiftCard.count({
+            where: {
+                giftCardId: giftCardItem.id
+            }
+        });
+
+        if (countUserGiftCard > giftCardItem.limitUse) throw new AppError("Thẻ quà tặng này đã hết lượng", 400);
+
+        await UserGiftCard.create({
+            userId: this.getUserId(),
+            giftCardId: giftCardItem.id
+        });
     }
 
 }

@@ -17,7 +17,7 @@ exports.getGiftOwned = catchAsync(async (req, res, next) => {
 exports.getGiftrEligible = catchAsync(async (req, res, next) => {
     const { partnerTypeVoucher } = res.locals;
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
-    const vouchers = await userService.getVoucherEligible();
+    const vouchers = await userService.getGiftCardEligible();
 
     res.json({
         status: 'success',
@@ -85,28 +85,25 @@ exports.updateStateGift = catchAsync(async (req, res, next) => {
 exports.getGiftCanExchange = catchAsync(async (req, res, next) => {
     const { user } = res.locals;
     const { typeVoucher } = req.query;
-    const userService = new UserService('', '');
-    const vouchers = await userService.getVoucherCanBuy(user, typeVoucher);
+    const userService = new UserService(user, null);
+    const giftCards = await userService.getGiftCanExchange(typeVoucher);
 
     res.json({
         status: 'success',
         message: 'Lấy danh sách thành công !',
         data: {
-            vouchers
+            giftCards
         }
     });
 });
 
 exports.postExchangeGift = catchAsync(async (req, res, next) => {
-    const { transactionId } = req.body;
+    const { giftCardCode } = req.body;
     const userService = new UserService(res.locals.user, null);
-    const paymentId = await userService.buyVoucher(transactionId);
+    await userService.exchangeGift(giftCardCode);
 
     res.json({
         status: 'success',
-        message: 'Thực hiện thành công !',
-        data: {
-            paymentId
-        }
+        message: 'Đổi thành công !',
     });
 });

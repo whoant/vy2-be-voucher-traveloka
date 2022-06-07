@@ -4,7 +4,6 @@ const hideSecrets = require('../utils/hideSecrets');
 
 module.exports = (err, req, res, options) => {
     err.statusCode = err.statusCode || 500;
-    console.log(err)
     const notificationTitle = err.statusCode < 500 ? '⚠️ SERVER WARNING 📡' : '⛔️ SERVER ERROR 📡';
     const endpoint = `\`${req.method}\` ${`${req.protocol}://${req.get('host')}${req.originalUrl}`}`;
 

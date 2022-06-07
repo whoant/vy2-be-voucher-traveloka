@@ -162,6 +162,24 @@ class PartnerService {
         return count.length || 0;
     }
 
+    async getCountGiftCards() {
+        const partnerTypeId = (await PartnerTypeVoucher.findAll({
+            where: {
+                partnerId: this.partner.id,
+            },
+        })).map(item => item.id);
+
+        const count = await GiftCard.findAll({
+            where: {
+                partnerTypeId: {
+                    [Op.in]: partnerTypeId
+                }
+            }
+        })
+
+        return count.length || 0;
+    }
+
     async getPartner() {
         const partnerVoucher = new PartnerTypeVoucherService(null);
         await partnerVoucher.find(this.getPartnerId(), this.type);

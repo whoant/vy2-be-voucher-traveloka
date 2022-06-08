@@ -74,7 +74,7 @@ exports.loginUsingToken = catchAsync(async (req, res) => {
         await Promise.all(services.map(async type => {
             const typeVoucher = await TypeVoucher.findOne({
                 where: {
-                    type: SERVICE_PROFILE[type]
+                    type
                 }
             });
 

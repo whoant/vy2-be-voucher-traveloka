@@ -158,16 +158,18 @@ class UserService {
                 attributes: ['threshold', 'discount', 'maxAmount']
             },
             attributes: {
-                exclude: ['createdAt', 'updatedAt', 'partnerId', 'id']
+                exclude: ['createdAt', 'updatedAt', 'partnerId', 'id', 'PartnerTypeVoucherId', 'amount', 'limitUse']
             },
             raw: true,
             nest: true
         });
 
         return vouchers.map(voucher => {
+            const description = combineDescriptionVoucher(voucher.Condition);
+            delete voucher.Condition;
             return {
                 ...voucher,
-                description: combineDescriptionVoucher(voucher.Condition)
+                description,
             }
         });
     }
@@ -177,29 +179,34 @@ class UserService {
         const partnerTypeVoucher = this.partnerTypeVoucher;
 
         const voucher = await this.checkVoucherValid(code);
-        const amountAfter = await this.checkVoucherCondition(voucher, amount);
-        const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId());
-        const isExists = await clientRedis.exists(cacheVoucherId);
+        const amountDiscount = await this.checkVoucherCondition(voucher, amount);
+        const orderId = this.generateOrderId(code, partnerTypeVoucher.getId());
+        const isExists = await clientRedis.exists(orderId);
 
+        const amountAfter = amount - amountDiscount;
         if (!isExists) {
-            await clientRedis.set(cacheVoucherId, JSON.stringify({
+            await clientRedis.set(orderId, JSON.stringify({
                 transactionId,
                 voucherId: voucher.id,
                 userId: this.getUserId(),
                 amount,
                 isBuy: voucher.isBuy(),
-                amountAfter: amount - amountAfter
+                amountAfter,
             }), {
                 EX: 60 * 5
             });
         } else {
-            const parseCache = JSON.parse(await clientRedis.get(cacheVoucherId));
+            const parseCache = JSON.parse(await clientRedis.get(orderId));
             if (parseCache.transactionId !== transactionId) {
                 return false;
             }
         }
 
-        return cacheVoucherId;
+        return {
+            orderId,
+            amountAfter
+        };
+
     }
 
     async cancelOrder(orderId) {
@@ -262,21 +269,11 @@ class UserService {
     async checkVoucherCondition(voucher, amount) {
         const condition = await voucher.getCondition();
 
-        if (Number(amount) < Number(condition.threshold)) {
-            throw new AppError("Không đủ điều kiện", 400);
-        }
-
-        let deduct = Number(condition.maxAmount);
-        if (Number(condition.discount) > 0) {
-            let deductTemp = Number(amount) * Number(condition.discount) / 100;
-            if (deductTemp < deduct) deduct = deductTemp;
-        }
-
-        return Math.round(deduct);
+        return DiscountHelper(amount, condition);
     }
 
-    generateVoucherId(code, partnerTypeVoucherId) {
-        return `${code}:${this.getUserId()}:${partnerTypeVoucherId}`;
+    generateOrderId(code, partnerTypeVoucherId) {
+        return `order:${code}:${this.getUserId()}:${partnerTypeVoucherId}`;
     }
 
     async checkVoucherValid(code) {
@@ -505,7 +502,7 @@ class UserService {
                 partnerTypeId: this.partnerTypeVoucher.getId()
             },
             attributes: {
-                exclude: ['createdAt', 'updatedAt', 'partnerTypeId', 'id', 'limitUse']
+                exclude: ['createdAt', 'updatedAt', 'partnerTypeId', 'id', 'limitUse', 'pointExchange']
             },
             raw: true,
             nest: true
@@ -651,38 +648,78 @@ class UserService {
 
     async checkGiftCardCondition(code, amount) {
         const giftCard = await this.checkGiftCardValid(code);
+        const amountDiscount = DiscountHelper(amount, giftCard);
 
-        return DiscountHelper(amount, giftCard);
+        return {
+            amount: amountDiscount,
+            amountAfter: amount - amountDiscount
+        };
     }
 
     async preOrderGiftCard(orderInfo) {
         const { code, transactionId, amount } = orderInfo;
         const partnerTypeVoucher = this.partnerTypeVoucher;
 
-        const voucher = await this.checkVoucherValid(code);
-        const amountAfter = await this.checkVoucherCondition(voucher, amount);
-        const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId());
-        const isExists = await clientRedis.exists(cacheVoucherId);
+        const giftCard = await this.checkGiftCardValid(code);
+        const amountDiscount = DiscountHelper(amount, giftCard);
+        const orderId = this.generateOrderId(code, partnerTypeVoucher.getId());
+        const isExists = await clientRedis.exists(orderId);
+        const amountAfter = amount - amountDiscount;
 
         if (!isExists) {
-            await clientRedis.set(cacheVoucherId, JSON.stringify({
+            await clientRedis.set(orderId, JSON.stringify({
                 transactionId,
-                voucherId: voucher.id,
+                giftCardId: giftCard.id,
                 userId: this.getUserId(),
                 amount,
-                isBuy: voucher.isBuy(),
-                amountAfter: amount - amountAfter
+                amountAfter,
             }), {
                 EX: 60 * 5
             });
         } else {
-            const parseCache = JSON.parse(await clientRedis.get(cacheVoucherId));
+            const parseCache = JSON.parse(await clientRedis.get(orderId));
             if (parseCache.transactionId !== transactionId) {
                 return false;
             }
         }
 
-        return cacheVoucherId;
+        return {
+            orderId,
+            amountAfter
+        };
+    }
+
+    async updateStateGiftCard(orderId) {
+        let orderInfo = await clientRedis.get(orderId);
+
+        if (!orderInfo) return false;
+        const { userId, giftCardId, transactionId, amount, amountAfter } = JSON.parse(orderInfo);
+
+        try {
+            return await sequelize.transaction(async t => {
+                const userGiftCard = await UserGiftCard.findOne({
+                    where: {
+                        giftCardId,
+                        userId
+                    }
+                });
+                userGiftCard.state = STATE_PROMOTION.DONE;
+                userGiftCard.save({ transaction: t });
+
+                await Promise.all([
+                    clientRedis.del(orderId),
+                    userGiftCard.createDetailUserGiftCard({
+                        transactionId, amount, amountAfter,
+                    }, {
+                        transaction: t
+                    })
+                ]);
+
+                return true;
+            });
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
 }

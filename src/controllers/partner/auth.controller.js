@@ -36,7 +36,7 @@ exports.createPartner = catchAsync(async (req, res) => {
     await Promise.all(typeVouchers.map(async type => {
         const typeVoucher = await TypeVoucher.findOne({
             where: {
-                type,
+                type
             }
         });
 

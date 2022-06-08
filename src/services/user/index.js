@@ -13,6 +13,7 @@ const { v4: uuidv4 } = require('uuid');
 const { VNDtoUSD } = require("../../helpers/currencyConverter.helper");
 const Paypal = require('../Paypal');
 const _ = require('lodash');
+const DiscountHelper = require('../../helpers/discount.helper');
 const moment = require('moment-timezone');
 moment().tz("Asia/Ho_Chi_Minh").format();
 
@@ -480,6 +481,42 @@ class UserService {
     }
 
     async getGiftCardEligible() {
+        const giftCardsOwned = (await UserGiftCard.findAll({
+            where: {
+                userId: this.getUserId(),
+                state: STATE_PROMOTION.OWNED,
+            },
+            raw: true
+        })).map(({ giftCardId }) => giftCardId);
+
+        const timeCurrent = moment();
+
+        const giftCards = await GiftCard.findAll({
+            where: {
+                id: {
+                    [Op.in]: giftCardsOwned
+                },
+                effectiveAt: {
+                    [Op.lte]: timeCurrent
+                },
+                expirationAt: {
+                    [Op.gte]: timeCurrent
+                },
+                partnerTypeId: this.partnerTypeVoucher.getId()
+            },
+            attributes: {
+                exclude: ['createdAt', 'updatedAt', 'partnerTypeId', 'id', 'limitUse']
+            },
+            raw: true,
+            nest: true
+        });
+
+        return giftCards.map(giftCard => {
+            return {
+                ...giftCard,
+                description: combineDescriptionVoucher(giftCard)
+            }
+        });
     }
 
     async getGiftCanExchange(type) {
@@ -561,7 +598,7 @@ class UserService {
     }
 
     async exchangeGift(giftCardCode) {
-        const pointCurrent = 100;
+        const pointCurrent = 1000000;
 
         const giftCardItem = await GiftCard.findOne({
             where: {
@@ -583,6 +620,69 @@ class UserService {
             userId: this.getUserId(),
             giftCardId: giftCardItem.id
         });
+    }
+
+    async checkGiftCardValid(code) {
+        const giftCard = await GiftCard.findOne({
+            where: {
+                giftCardCode: code,
+                effectiveAt: {
+                    [Op.lte]: Date.now()
+                },
+                expirationAt: {
+                    [Op.gte]: Date.now()
+                },
+                partnerTypeId: this.partnerTypeVoucher.getId()
+            }
+        });
+
+        if (!giftCard) throw new AppError("Thẻ quà tặng không tồn tại !", 400);
+        const userGiftCard = await UserGiftCard.findOne({
+            where: {
+                giftCardId: giftCard.id,
+                userId: this.getUserId()
+            }
+        });
+
+        if (userGiftCard && userGiftCard.isOwned()) return giftCard;
+
+        throw new AppError("Thẻ quà tặng không tồn tại !", 400);
+    }
+
+    async checkGiftCardCondition(code, amount) {
+        const giftCard = await this.checkGiftCardValid(code);
+
+        return DiscountHelper(amount, giftCard);
+    }
+
+    async preOrderGiftCard(orderInfo) {
+        const { code, transactionId, amount } = orderInfo;
+        const partnerTypeVoucher = this.partnerTypeVoucher;
+
+        const voucher = await this.checkVoucherValid(code);
+        const amountAfter = await this.checkVoucherCondition(voucher, amount);
+        const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId());
+        const isExists = await clientRedis.exists(cacheVoucherId);
+
+        if (!isExists) {
+            await clientRedis.set(cacheVoucherId, JSON.stringify({
+                transactionId,
+                voucherId: voucher.id,
+                userId: this.getUserId(),
+                amount,
+                isBuy: voucher.isBuy(),
+                amountAfter: amount - amountAfter
+            }), {
+                EX: 60 * 5
+            });
+        } else {
+            const parseCache = JSON.parse(await clientRedis.get(cacheVoucherId));
+            if (parseCache.transactionId !== transactionId) {
+                return false;
+            }
+        }
+
+        return cacheVoucherId;
     }
 
 }

@@ -17,12 +17,12 @@ exports.getGiftOwned = catchAsync(async (req, res, next) => {
 exports.getGiftrEligible = catchAsync(async (req, res, next) => {
     const { partnerTypeVoucher } = res.locals;
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
-    const vouchers = await userService.getGiftCardEligible();
+    const giftCards = await userService.getGiftCardEligible();
 
     res.json({
         status: 'success',
         message: 'Lấy danh sách thành công !',
-        data: { vouchers }
+        data: { giftCards }
     });
 });
 
@@ -30,8 +30,7 @@ exports.checkCondition = catchAsync(async (req, res, next) => {
     const { amount, code } = req.query;
     const { partnerTypeVoucher } = res.locals;
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
-    const voucher = await userService.checkVoucherValid(code);
-    const deduct = await userService.checkVoucherCondition(voucher, amount);
+    const deduct = await userService.checkGiftCardCondition(code, amount);
 
     res.json({
         status: 'success',
@@ -44,7 +43,7 @@ exports.preOrder = catchAsync(async (req, res, next) => {
     const { partnerTypeVoucher } = res.locals;
 
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
-    const preOrder = await userService.preOrder(req.body);
+    const preOrder = await userService.preOrderGiftCard(req.body);
 
     if (!preOrder) throw new AppError("Voucher này đang được áp cho giao dịch khác", 400);
 

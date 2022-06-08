@@ -1,7 +1,7 @@
 const {
     Voucher,
     UserVoucher,
-    Condition, sequelize, TypeVoucher, PartnerTypeVoucher, User, Partner,
+    Condition, sequelize, TypeVoucher, PartnerTypeVoucher, User, Partner, UserGiftCard, GiftCard,
 } = require("../../models");
 const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
@@ -13,6 +13,9 @@ const { v4: uuidv4 } = require('uuid');
 const { VNDtoUSD } = require("../../helpers/currencyConverter.helper");
 const Paypal = require('../Paypal');
 const _ = require('lodash');
+const DiscountHelper = require('../../helpers/discount.helper');
+const moment = require('moment-timezone');
+moment().tz("Asia/Ho_Chi_Minh").format();
 
 class UserService {
     constructor(user, partnerTypeVoucher) {
@@ -135,16 +138,18 @@ class UserService {
 
         const listVoucherDiff = [...new Set([...listVoucherDone, ...listVoucherNotBuy])]
 
+        const timeCurrent = moment();
+
         const vouchers = await Voucher.findAll({
             where: {
                 id: {
                     [Op.notIn]: listVoucherDiff
                 },
                 effectiveAt: {
-                    [Op.lte]: Date.now()
+                    [Op.lte]: timeCurrent
                 },
                 expirationAt: {
-                    [Op.gte]: Date.now()
+                    [Op.gte]: timeCurrent
                 },
                 PartnerTypeVoucherId: this.partnerTypeVoucher.getId()
             },
@@ -153,16 +158,18 @@ class UserService {
                 attributes: ['threshold', 'discount', 'maxAmount']
             },
             attributes: {
-                exclude: ['createdAt', 'updatedAt', 'partnerId', 'id']
+                exclude: ['createdAt', 'updatedAt', 'partnerId', 'id', 'PartnerTypeVoucherId', 'amount', 'limitUse']
             },
             raw: true,
             nest: true
         });
 
         return vouchers.map(voucher => {
+            const description = combineDescriptionVoucher(voucher.Condition);
+            delete voucher.Condition;
             return {
                 ...voucher,
-                description: combineDescriptionVoucher(voucher.Condition)
+                description,
             }
         });
     }
@@ -172,29 +179,34 @@ class UserService {
         const partnerTypeVoucher = this.partnerTypeVoucher;
 
         const voucher = await this.checkVoucherValid(code);
-        const amountAfter = await this.checkVoucherCondition(voucher, amount);
-        const cacheVoucherId = this.generateVoucherId(code, partnerTypeVoucher.getId());
-        const isExists = await clientRedis.exists(cacheVoucherId);
+        const amountDiscount = await this.checkVoucherCondition(voucher, amount);
+        const orderId = this.generateOrderId(code, partnerTypeVoucher.getId());
+        const isExists = await clientRedis.exists(orderId);
 
+        const amountAfter = amount - amountDiscount;
         if (!isExists) {
-            await clientRedis.set(cacheVoucherId, JSON.stringify({
+            await clientRedis.set(orderId, JSON.stringify({
                 transactionId,
                 voucherId: voucher.id,
                 userId: this.getUserId(),
                 amount,
                 isBuy: voucher.isBuy(),
-                amountAfter: amount - amountAfter
+                amountAfter,
             }), {
                 EX: 60 * 5
             });
         } else {
-            const parseCache = JSON.parse(await clientRedis.get(cacheVoucherId));
+            const parseCache = JSON.parse(await clientRedis.get(orderId));
             if (parseCache.transactionId !== transactionId) {
                 return false;
             }
         }
 
-        return cacheVoucherId;
+        return {
+            orderId,
+            amountAfter
+        };
+
     }
 
     async cancelOrder(orderId) {
@@ -257,21 +269,11 @@ class UserService {
     async checkVoucherCondition(voucher, amount) {
         const condition = await voucher.getCondition();
 
-        if (Number(amount) < Number(condition.threshold)) {
-            throw new AppError("Không đủ điều kiện", 400);
-        }
-
-        let deduct = Number(condition.maxAmount);
-        if (Number(condition.discount) > 0) {
-            let deductTemp = Number(amount) * Number(condition.discount) / 100;
-            if (deductTemp < deduct) deduct = deductTemp;
-        }
-
-        return Math.round(deduct);
+        return DiscountHelper(amount, condition);
     }
 
-    generateVoucherId(code, partnerTypeVoucherId) {
-        return `${code}:${this.getUserId()}:${partnerTypeVoucherId}`;
+    generateOrderId(code, partnerTypeVoucherId) {
+        return `order:${code}:${this.getUserId()}:${partnerTypeVoucherId}`;
     }
 
     async checkVoucherValid(code) {
@@ -326,8 +328,11 @@ class UserService {
             },
             attributes: {
                 include: ['voucherId']
-            }
+            },
+            raw: true
         });
+
+        const timeCurrent = moment();
 
         const vouchers = await Voucher.findAll({
             where: {
@@ -338,10 +343,10 @@ class UserService {
                     [Op.gt]: 0
                 },
                 effectiveAt: {
-                    [Op.lte]: Date.now()
+                    [Op.lte]: timeCurrent
                 },
                 expirationAt: {
-                    [Op.gte]: Date.now()
+                    [Op.gte]: timeCurrent
                 },
                 id: {
                     [Op.notIn]: listVouchersExist.map(item => item.voucherId)
@@ -470,6 +475,251 @@ class UserService {
 
     createTransactionId(voucherId, userId = '') {
         return `buy:${voucherId}:${userId}`;
+    }
+
+    async getGiftCardEligible() {
+        const giftCardsOwned = (await UserGiftCard.findAll({
+            where: {
+                userId: this.getUserId(),
+                state: STATE_PROMOTION.OWNED,
+            },
+            raw: true
+        })).map(({ giftCardId }) => giftCardId);
+
+        const timeCurrent = moment();
+
+        const giftCards = await GiftCard.findAll({
+            where: {
+                id: {
+                    [Op.in]: giftCardsOwned
+                },
+                effectiveAt: {
+                    [Op.lte]: timeCurrent
+                },
+                expirationAt: {
+                    [Op.gte]: timeCurrent
+                },
+                partnerTypeId: this.partnerTypeVoucher.getId()
+            },
+            attributes: {
+                exclude: ['createdAt', 'updatedAt', 'partnerTypeId', 'id', 'limitUse', 'pointExchange']
+            },
+            raw: true,
+            nest: true
+        });
+
+        return giftCards.map(giftCard => {
+            return {
+                ...giftCard,
+                description: combineDescriptionVoucher(giftCard)
+            }
+        });
+    }
+
+    async getGiftCanExchange(type) {
+
+        const typeVoucher = await TypeVoucher.findOne({
+            where: {
+                type,
+            },
+        });
+
+        const partnerTypeId = (await PartnerTypeVoucher.findAll({
+            where: {
+                typeVoucherId: typeVoucher.id
+            },
+            attributes: {
+                include: ['id']
+            },
+            raw: true,
+            nest: true
+        })).map(({ id }) => id);
+
+        const giftCardsDone = (await UserGiftCard.findAll({
+            where: {
+                userId: this.getUserId(),
+            },
+            attributes: ['giftCardId'],
+            raw: true
+        })).map(({ giftCardId }) => giftCardId);
+
+        const timeCurrent = moment();
+
+        const giftCards = await GiftCard.findAll({
+            where: {
+                id: {
+                    [Op.notIn]: giftCardsDone
+                },
+                effectiveAt: {
+                    [Op.lte]: timeCurrent
+                },
+                expirationAt: {
+                    [Op.gte]: timeCurrent
+                },
+                partnerTypeId: {
+                    [Op.in]: partnerTypeId
+                }
+            },
+            raw: true,
+            nest: true
+        });
+
+        const countUserGiftCard = await Promise.all(giftCards.map(giftCard => {
+            return UserGiftCard.count({
+                where: {
+                    giftCardId: giftCard.id
+                }
+            });
+        }));
+
+        const res = [];
+        giftCards.forEach((giftCard, index) => {
+            const {
+                title,
+                content,
+                effectiveAt,
+                expirationAt,
+                pointExchange,
+                imageUrl,
+                giftCardCode,
+                limitUse
+            } = giftCard;
+            if (countUserGiftCard[index] >= limitUse) return;
+            res.push({
+                title, content, effectiveAt, expirationAt, pointExchange, imageUrl, giftCardCode,
+                description: combineDescriptionVoucher(giftCard),
+            });
+        });
+
+        return res;
+    }
+
+    async exchangeGift(giftCardCode) {
+        const pointCurrent = 30000;
+
+        const giftCardItem = await GiftCard.findOne({
+            where: {
+                giftCardCode
+            },
+        });
+
+        if (giftCardItem.pointExchange > pointCurrent) throw new AppError("Số điểm của bạn không đủ để đổi", 400);
+
+        const countUserGiftCard = await UserGiftCard.count({
+            where: {
+                giftCardId: giftCardItem.id
+            }
+        });
+
+        if (countUserGiftCard > giftCardItem.limitUse) throw new AppError("Thẻ quà tặng này đã hết lượng", 400);
+
+        await UserGiftCard.create({
+            userId: this.getUserId(),
+            giftCardId: giftCardItem.id
+        });
+    }
+
+    async checkGiftCardValid(code) {
+        const giftCard = await GiftCard.findOne({
+            where: {
+                giftCardCode: code,
+                effectiveAt: {
+                    [Op.lte]: Date.now()
+                },
+                expirationAt: {
+                    [Op.gte]: Date.now()
+                },
+                partnerTypeId: this.partnerTypeVoucher.getId()
+            }
+        });
+
+        if (!giftCard) throw new AppError("Thẻ quà tặng không tồn tại !", 400);
+        const userGiftCard = await UserGiftCard.findOne({
+            where: {
+                giftCardId: giftCard.id,
+                userId: this.getUserId()
+            }
+        });
+
+        if (userGiftCard && userGiftCard.isOwned()) return giftCard;
+
+        throw new AppError("Thẻ quà tặng không tồn tại !", 400);
+    }
+
+    async checkGiftCardCondition(code, amount) {
+        const giftCard = await this.checkGiftCardValid(code);
+        const amountDiscount = DiscountHelper(amount, giftCard);
+
+        return {
+            amount: amountDiscount,
+            amountAfter: amount - amountDiscount
+        };
+    }
+
+    async preOrderGiftCard(orderInfo) {
+        const { code, transactionId, amount } = orderInfo;
+        const partnerTypeVoucher = this.partnerTypeVoucher;
+
+        const giftCard = await this.checkGiftCardValid(code);
+        const amountDiscount = DiscountHelper(amount, giftCard);
+        const orderId = this.generateOrderId(code, partnerTypeVoucher.getId());
+        const isExists = await clientRedis.exists(orderId);
+        const amountAfter = amount - amountDiscount;
+
+        if (!isExists) {
+            await clientRedis.set(orderId, JSON.stringify({
+                transactionId,
+                giftCardId: giftCard.id,
+                userId: this.getUserId(),
+                amount,
+                amountAfter,
+            }), {
+                EX: 60 * 5
+            });
+        } else {
+            const parseCache = JSON.parse(await clientRedis.get(orderId));
+            if (parseCache.transactionId !== transactionId) {
+                return false;
+            }
+        }
+
+        return {
+            orderId,
+            amountAfter
+        };
+    }
+
+    async updateStateGiftCard(orderId) {
+        let orderInfo = await clientRedis.get(orderId);
+
+        if (!orderInfo) return false;
+        const { userId, giftCardId, transactionId, amount, amountAfter } = JSON.parse(orderInfo);
+
+        try {
+            return await sequelize.transaction(async t => {
+                const userGiftCard = await UserGiftCard.findOne({
+                    where: {
+                        giftCardId,
+                        userId
+                    }
+                });
+                userGiftCard.state = STATE_PROMOTION.DONE;
+                userGiftCard.save({ transaction: t });
+
+                await Promise.all([
+                    clientRedis.del(orderId),
+                    userGiftCard.createDetailUserGiftCard({
+                        transactionId, amount, amountAfter,
+                    }, {
+                        transaction: t
+                    })
+                ]);
+
+                return true;
+            });
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
 }

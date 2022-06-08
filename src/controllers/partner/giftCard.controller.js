@@ -8,7 +8,7 @@ exports.getGiftCards = catchAsync(async (req, res, next) => {
 
     res.json({
         status: 'success',
-        message: 'lấy danh sách phiếu điểm thưởng thành công !',
+        message: 'Lấy danh sách phiếu điểm thưởng thành công !',
         data: {
             giftCards
         }
@@ -23,5 +23,18 @@ exports.createGiftCard = catchAsync(async (req, res, next) => {
     res.json({
         status: 'success',
         message: 'Tạo phiếu điểm thưởng thành công !'
+    });
+});
+
+exports.getCountGiftCards = catchAsync(async (req, res, next) => {
+    const partner = new PartnerService(res.locals.partner, '');
+    const count = await partner.getCountGiftCards();
+
+    res.json({
+        status: 'success',
+        message: 'Lấy thông tin thành công !',
+        data: {
+            count
+        }
     });
 });

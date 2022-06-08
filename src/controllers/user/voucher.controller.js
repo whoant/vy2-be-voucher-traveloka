@@ -53,7 +53,7 @@ exports.preOrder = catchAsync(async (req, res, next) => {
         status: 'success',
         message: 'Áp mã thành công !',
         data: {
-            orderId: preOrder
+            ...preOrder
         }
     });
 });

@@ -595,7 +595,7 @@ class UserService {
     }
 
     async exchangeGift(giftCardCode) {
-        const pointCurrent = 1000000;
+        const pointCurrent = 30000;
 
         const giftCardItem = await GiftCard.findOne({
             where: {

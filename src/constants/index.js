@@ -18,5 +18,10 @@ module.exports = {
         'vy02': 'vy02',
         'vy03': 'vy03',
         'vy04': 'vy04'
+    },
+    TYPE_OWNED: {
+        AVAILABLE: 'available',
+        EXPIRED: 'expired',
+        USED: 'used',
     }
 };

@@ -1,6 +1,7 @@
 const catchAsync = require("../../helpers/catchAsync.helper");
 const UserService = require("../../services/user");
 const AppError = require("../../helpers/appError.helper");
+const SwitchProfile = require('../../services/Profile');
 
 exports.getGiftOwned = catchAsync(async (req, res, next) => {
     const { type } = req.query;
@@ -98,11 +99,27 @@ exports.getGiftCanExchange = catchAsync(async (req, res, next) => {
 
 exports.postExchangeGift = catchAsync(async (req, res, next) => {
     const { giftCardCode } = req.body;
+    const token = req.get('authorization');
     const userService = new UserService(res.locals.user, null);
-    await userService.exchangeGift(giftCardCode);
+    await userService.exchangeGift(giftCardCode, token);
 
     res.json({
         status: 'success',
         message: 'Đổi thành công !',
     });
+});
+
+exports.getPointAvailable = catchAsync(async (req, res, next) => {
+    const { appId } = res.locals.user;
+    const token = req.get('authorization');
+    const profileService = SwitchProfile(appId, token);
+    const point = await profileService.getPoint();
+
+    res.json({
+        status: 'success',
+        data: {
+            point
+        },
+        message: 'Lấy điểm thành công !'
+    })
 });

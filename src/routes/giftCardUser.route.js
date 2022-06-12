@@ -22,4 +22,6 @@ router.get('/can-exchange', authMiddleware.selectUser('USER'), giftCardUserContr
 
 router.post('/exchange', authMiddleware.selectUser('USER'), giftCardUserController.postExchangeGift);
 
+router.get('/point', authMiddleware.selectUser('USER'), giftCardUserController.getPointAvailable);
+
 module.exports = router;

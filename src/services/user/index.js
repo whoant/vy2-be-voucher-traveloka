@@ -15,6 +15,7 @@ const Paypal = require('../Paypal');
 const _ = require('lodash');
 const DiscountHelper = require('../../helpers/discount.helper');
 const moment = require('moment-timezone');
+const SwitchProfile = require("../Profile");
 moment().tz("Asia/Ho_Chi_Minh").format();
 
 class UserService {
@@ -594,14 +595,23 @@ class UserService {
         return res;
     }
 
-    async exchangeGift(giftCardCode) {
-        const pointCurrent = 30000;
+    async exchangeGift(giftCardCode, token) {
+        const { appId } = this.user;
+        const profileService = SwitchProfile(appId, token);
+        const pointCurrent = profileService.getPoint();
 
         const giftCardItem = await GiftCard.findOne({
             where: {
                 giftCardCode
             },
+            include: [{
+                model: PartnerTypeVoucher
+            }],
+            raw: true,
+            nest: true
         });
+
+        console.log('-> 💩 giftCardItem', giftCardItem);
 
         if (giftCardItem.pointExchange > pointCurrent) throw new AppError("Số điểm của bạn không đủ để đổi", 400);
 
@@ -617,6 +627,14 @@ class UserService {
             userId: this.getUserId(),
             giftCardId: giftCardItem.id
         });
+
+        const getTypeVoucher = await TypeVoucher.findOne({
+            where: {
+                id: giftCardItem.PartnerTypeVoucher.typeVoucherId
+            }
+        });
+
+        await profileService.updatePoint(giftCardItem.pointExchange, getTypeVoucher.type);
     }
 
     async checkGiftCardValid(code) {

@@ -7,7 +7,7 @@ const AppError = require("../../helpers/appError.helper");
 const { Op } = require("sequelize");
 const { combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
 const clientRedis = require('../../config/redis');
-const { STATE_PROMOTION } = require("../../constants");
+const { STATE_PROMOTION, TYPE_OWNED } = require("../../constants");
 const { sha256 } = require("../../helpers/hash.helper");
 const { v4: uuidv4 } = require('uuid');
 const { VNDtoUSD } = require("../../helpers/currencyConverter.helper");
@@ -32,7 +32,7 @@ class UserService {
 
         let conditionVoucher = {}
 
-        if (type === 'available') {
+        if (type === TYPE_OWNED.AVAILABLE) {
             conditionVoucher = {
                 ...conditionVoucher,
                 effectiveAt: {
@@ -43,14 +43,14 @@ class UserService {
                 },
             };
 
-        } else if (type === 'expired') {
+        } else if (type === TYPE_OWNED.EXPIRED) {
             conditionVoucher = {
                 ...conditionVoucher,
                 expirationAt: {
                     [Op.lt]: Date.now()
                 },
             }
-        } else if (type === 'used') {
+        } else if (type === TYPE_OWNED.USED) {
             conditionUserVoucher.state = STATE_PROMOTION.DONE;
         }
 
@@ -93,11 +93,11 @@ class UserService {
         });
 
         const vouchers = listVouchers.map(voucher => {
-            const { title, content, effectiveAt, voucherCode, amount, expirationAt, createdAt } = voucher;
+            const { title, content, effectiveAt, voucherCode, amount, expirationAt } = voucher;
             const { typeVoucherId } = voucher.PartnerTypeVoucher;
 
             return {
-                title, content, effectiveAt, voucherCode, amount, expirationAt, createdAt,
+                title, content, effectiveAt, voucherCode, amount, expirationAt,
                 type: mapTypeVouchers.get(typeVoucherId),
                 description: combineDescriptionVoucher(voucher.Condition)
             };
@@ -738,6 +738,86 @@ class UserService {
         } catch (e) {
             return Promise.reject(e);
         }
+    }
+
+    async getGiftCardOwned(type) {
+        let conditionUserGiftCard = {
+            userId: this.user.id,
+            state: STATE_PROMOTION.OWNED,
+        };
+
+        let conditionGiftCard = {}
+        const timeCurrent = moment();
+        if (type === TYPE_OWNED.AVAILABLE) {
+            conditionGiftCard = {
+                ...conditionGiftCard,
+                effectiveAt: {
+                    [Op.lte]: timeCurrent
+                },
+                expirationAt: {
+                    [Op.gte]: timeCurrent
+                },
+            };
+        } else if (type === TYPE_OWNED.EXPIRED) {
+            conditionGiftCard = {
+                ...conditionGiftCard,
+                expirationAt: {
+                    [Op.lt]: timeCurrent
+                },
+            }
+        } else if (type === TYPE_OWNED.USED) {
+            conditionUserGiftCard.state = STATE_PROMOTION.DONE;
+        }
+
+        const userGiftCards = await UserGiftCard.findAll({
+            where: conditionUserGiftCard,
+            nest: true,
+            raw: true
+        });
+
+        console.log('-> 💩 userGiftCards', userGiftCards);
+
+        const listGiftCards = await GiftCard.findAll({
+            where: {
+                id: {
+                    [Op.in]: userGiftCards.map(userGift => userGift.giftCardId)
+                },
+                ...conditionGiftCard
+            },
+            include: [{
+                model: PartnerTypeVoucher,
+            }],
+            attributes: {
+                exclude: ['updatedAt', 'imageUrl', 'limitUse', 'id']
+            }
+        });
+
+        const listTypeVouchers = await TypeVoucher.findAll({
+            nest: true,
+            raw: true,
+            attributes: [
+                ['id', 'typeVoucherId'],
+                'type'
+            ]
+        });
+
+        const mapTypeVouchers = new Map();
+        listTypeVouchers.forEach(item => {
+            mapTypeVouchers.set(item.typeVoucherId, item.type);
+        });
+
+        const giftCards = listGiftCards.map(giftCard => {
+            const { title, content, effectiveAt, giftCardCode, amount, expirationAt } = giftCard;
+            const { typeVoucherId } = giftCard.PartnerTypeVoucher;
+
+            return {
+                title, content, effectiveAt, giftCardCode, amount, expirationAt,
+                type: mapTypeVouchers.get(typeVoucherId),
+                description: combineDescriptionVoucher(giftCard)
+            };
+        })
+
+        return giftCards;
     }
 
 }

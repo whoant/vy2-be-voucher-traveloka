@@ -6,12 +6,12 @@ const SwitchProfile = require('../../services/Profile');
 exports.getGiftOwned = catchAsync(async (req, res, next) => {
     const { type } = req.query;
     const userService = new UserService(res.locals.user, null);
-    const vouchers = await userService.getVoucherOwned(type);
+    const giftCards = await userService.getGiftCardOwned(type);
 
     res.json({
         status: 'success',
         message: 'Lấy danh sách thành công !',
-        data: { vouchers }
+        data: { giftCards }
     });
 });
 

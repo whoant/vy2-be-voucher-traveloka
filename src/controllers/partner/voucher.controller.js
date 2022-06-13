@@ -41,9 +41,9 @@ exports.getTypeVouchers = catchAsync(async (req, res, next) => {
 });
 
 exports.getDetailVoucher = catchAsync(async (req, res, next) => {
-    const { type, code } = req.query;
+    const { type, code, typeView } = req.query;
     const partner = new PartnerService(res.locals.partner, type);
-    const info = await partner.getDetail(code);
+    const info = await partner.getDetail(code, typeView);
 
     res.json({
         status: 'success',

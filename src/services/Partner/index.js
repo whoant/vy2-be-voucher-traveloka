@@ -82,14 +82,30 @@ class PartnerService {
         return listTypeVoucher;
     }
 
-    async getDetail(code) {
+    async getDetail(code, typeView) {
         const partnerVoucher = await this.getPartner();
         const Voucher = new VoucherService(partnerVoucher);
         const voucher = await Voucher.getVoucherFromCode(code);
 
         const attributes = ['transactionId', 'amount', 'amountAfter', 'usedAt'];
 
-        const userVouchers = await this.getUserVoucherDone(voucher, attributes);
+        let userVouchers = [];
+
+        if (typeView === 'buy') {
+            userVouchers = await UserVoucher.findAll({
+                where: {
+                    voucherId: voucher.id,
+                },
+                include: {
+                    model: DetailUserVoucher,
+                },
+                raw: true,
+                nest: true
+            });
+        } else {
+            userVouchers = await this.getUserVoucherDone(voucher, attributes);
+        }
+
 
         const listUser = await Promise.all(userVouchers.map(userVoucher => {
             return User.findByPk(userVoucher.userId, {
@@ -101,15 +117,16 @@ class PartnerService {
         const result = [];
         userVouchers.forEach((userVoucher, index) => {
             const { email } = listUser[index];
-            const { DetailUserVoucher: { amountAfter, amount, transactionId, usedAt }, userId } = userVoucher;
+            const { DetailUserVoucher, userId } = userVoucher;
+
             result.push({
                 index: index + 1,
                 email,
                 userId,
-                amount,
-                amountAfter,
-                transactionId,
-                usedAt
+                amount: DetailUserVoucher?.amount || 0,
+                amountAfter: DetailUserVoucher?.amountAfter || 0,
+                transactionId: DetailUserVoucher?.transactionId || 0,
+                usedAt: DetailUserVoucher?.usedAt || userVoucher.createdAt,
             });
         });
 
@@ -139,7 +156,7 @@ class PartnerService {
 
         return {
             totalAmount,
-            totalUse: userVouchers.length,
+            totalUsed: userVouchers.length,
             totalBuy
         };
 
@@ -244,14 +261,29 @@ class PartnerService {
         return partnerGift.createGiftCard(giftCard);
     }
 
-    async getDetailGift(code) {
+    async getDetailGift(code, typeView) {
         const partnerVoucher = await this.getPartner();
         const GiftCard = new GiftCardService(partnerVoucher);
         const gift = await GiftCard.getGiftFromCode(code);
 
         const attributes = ['transactionId', 'amount', 'amountAfter', 'usedAt'];
 
-        const userGiftCards = await this.getUserGiftDone(gift, attributes);
+        let userGiftCards = [];
+
+        if (typeView === 'exchange') {
+            userGiftCards = await UserGiftCard.findAll({
+                where: {
+                    giftCardId: gift.id,
+                },
+                include: {
+                    model: DetailUserGiftCard,
+                },
+                raw: true,
+                nest: true
+            });
+        } else {
+            userGiftCards = await this.getUserGiftDone(gift, attributes);
+        }
 
         const listUser = await Promise.all(userGiftCards.map(userGiftCard => {
             return User.findByPk(userGiftCard.userId, {
@@ -263,15 +295,15 @@ class PartnerService {
         const result = [];
         userGiftCards.forEach((userGiftCard, index) => {
             const { email } = listUser[index];
-            const { DetailUserGiftCard: { amountAfter, amount, transactionId, usedAt }, userId } = userGiftCard;
+            const { DetailUserGiftCard, userId } = userGiftCard;
             result.push({
                 index: index + 1,
                 email,
                 userId,
-                amount,
-                amountAfter,
-                transactionId,
-                usedAt
+                amount: DetailUserGiftCard?.amount || 0,
+                amountAfter: DetailUserGiftCard?.amountAfter || 0,
+                transactionId: DetailUserGiftCard?.transactionId || 0,
+                usedAt: DetailUserGiftCard?.usedAt || userGiftCard.createdAt
             });
         });
 

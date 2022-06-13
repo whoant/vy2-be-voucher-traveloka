@@ -40,9 +40,9 @@ exports.getCountGiftCards = catchAsync(async (req, res, next) => {
 });
 
 exports.getDetailGiftCard = catchAsync(async (req, res, next) => {
-    const { type, code } = req.query;
+    const { type, code, typeView } = req.query;
     const partner = new PartnerService(res.locals.partner, type);
-    const info = await partner.getDetailGift(code);
+    const info = await partner.getDetailGift(code, typeView);
 
     res.json({
         status: 'success',

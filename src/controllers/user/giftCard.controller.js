@@ -125,9 +125,9 @@ exports.getPointAvailable = catchAsync(async (req, res, next) => {
 });
 
 exports.getDetailGift = catchAsync(async (req, res, next) => {
-    const { voucherCode } = req.query;
+    const { code } = req.query;
     const userService = new UserService(res.locals.user, null);
-    const info = await userService.getDetailGift(voucherCode);
+    const info = await userService.getDetailGift(code);
 
     res.json({
         status: 'success',

@@ -19,8 +19,15 @@ class Profile3 {
         }
     }
 
-    async updatePoint(point, appId = '') {
-        return true
+    async updatePoint(point, appId = '', userId = '') {
+        return axios.post('https://profile.vinhphancommunity.xyz/api/vouchers/reward', {
+            userId,
+            reward: point
+        }, {
+            headers: {
+                service: 'VOUCHER'
+            }
+        });
     }
 
 }

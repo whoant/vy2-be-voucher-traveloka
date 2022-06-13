@@ -598,8 +598,8 @@ class UserService {
     async exchangeGift(giftCardCode, token) {
         const { appId } = this.user;
         const profileService = SwitchProfile(appId, token);
-        const pointCurrent = profileService.getPoint();
-
+        const pointCurrent = await profileService.getPoint();
+        
         const giftCardItem = await GiftCard.findOne({
             where: {
                 giftCardCode
@@ -610,8 +610,6 @@ class UserService {
             raw: true,
             nest: true
         });
-
-        console.log('-> 💩 giftCardItem', giftCardItem);
 
         if (giftCardItem.pointExchange > pointCurrent) throw new AppError("Số điểm của bạn không đủ để đổi", 400);
 

@@ -283,6 +283,14 @@ class UserService {
     }
 
     async checkVoucherCondition(voucher, amount) {
+        const partnerTypeVoucher = this.partnerTypeVoucher;
+        const orderId = this.generateOrderId(voucher.voucherCode, partnerTypeVoucher.getId());
+        const isExists = await clientRedis.exists(orderId);
+
+        if (isExists) {
+            throw new AppError("Voucher này đang được sử dụng !")
+        }
+
         const condition = await voucher.getCondition();
 
         return DiscountHelper(amount, condition);

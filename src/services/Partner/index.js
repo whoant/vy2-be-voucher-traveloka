@@ -5,13 +5,14 @@ const {
     PartnerTypeVoucher,
     TypeVoucher,
     UserVoucher,
-    DetailUserVoucher, User, sequelize
+    DetailUserVoucher, User, sequelize, UserGiftCard, DetailUserGiftCard
 } = require("../../models");
 const { combineDescriptionGiftCard, combineDescriptionVoucher } = require("../../helpers/combineDescription.helper");
 const PartnerTypeVoucherService = require("../PartnerTypeVoucher");
 const { Op } = require("sequelize");
 const { STATE_PROMOTION } = require("../../constants");
 const VoucherService = require("../voucher");
+const GiftCardService = require("../GiftCard");
 
 class PartnerService {
 
@@ -201,6 +202,21 @@ class PartnerService {
         });
     }
 
+    async getUserGiftDone(giftCard, attributes) {
+        return UserGiftCard.findAll({
+            where: {
+                giftCardId: giftCard.id,
+                state: STATE_PROMOTION.DONE
+            },
+            include: {
+                model: DetailUserGiftCard,
+                attributes
+            },
+            raw: true,
+            nest: true
+        });
+    }
+
     async getGiftCards() {
         const partnerVoucher = await this.getPartner();
         const giftCards = await GiftCard.findAll({
@@ -226,6 +242,64 @@ class PartnerService {
     async createGiftCard(giftCard) {
         const partnerGift = await this.getPartner();
         return partnerGift.createGiftCard(giftCard);
+    }
+
+    async getDetailGift(code) {
+        const partnerVoucher = await this.getPartner();
+        const GiftCard = new GiftCardService(partnerVoucher);
+        const gift = await GiftCard.getGiftFromCode(code);
+
+        const attributes = ['transactionId', 'amount', 'amountAfter', 'usedAt'];
+
+        const userGiftCards = await this.getUserGiftDone(gift, attributes);
+
+        const listUser = await Promise.all(userGiftCards.map(userGiftCard => {
+            return User.findByPk(userGiftCard.userId, {
+                raw: true,
+                nest: true
+            });
+        }));
+
+        const result = [];
+        userGiftCards.forEach((userGiftCard, index) => {
+            const { email } = listUser[index];
+            const { DetailUserGiftCard: { amountAfter, amount, transactionId, usedAt }, userId } = userGiftCard;
+            result.push({
+                index: index + 1,
+                email,
+                userId,
+                amount,
+                amountAfter,
+                transactionId,
+                usedAt
+            });
+        });
+
+        return result;
+    }
+
+    async getAnalyzeGiftCard(code) {
+        const partnerVoucher = await this.getPartner();
+        const GiftCard = new GiftCardService(partnerVoucher);
+        const gift = await GiftCard.getGiftFromCode(code);
+
+        const totalUserGiftCard = await UserGiftCard.count({
+            where: {
+                giftCardId: gift.id,
+            }
+        });
+
+        const userGiftCards = await this.getUserGiftDone(gift, ['amountAfter']);
+
+        const totalAmount = userGiftCards.reduce((previousValue, currentValue) => {
+            return previousValue + Number(currentValue.DetailUserGiftCard.amountAfter);
+        }, 0);
+
+        return {
+            totalAmount,
+            totalUsed: userGiftCards.length,
+            totalExchange: totalUserGiftCard
+        };
     }
 
 }

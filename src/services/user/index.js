@@ -856,6 +856,10 @@ class UserService {
             }
         });
 
+        if (!voucher) {
+            throw new AppError("Voucher không tồn tại !");
+        }
+
         return voucher;
     }
 
@@ -865,6 +869,10 @@ class UserService {
                 giftCardCode: code
             },
         });
+
+        if (!giftCard) {
+            throw new AppError("Thẻ quà tặng không hợp lệ !");
+        }
 
         return giftCard;
     }

@@ -144,9 +144,9 @@ exports.postBuyVoucher = catchAsync(async (req, res, next) => {
 });
 
 exports.getDetailVoucher = catchAsync(async (req, res, next) => {
-    const { voucherCode } = req.query;
+    const { code } = req.query;
     const userService = new UserService(res.locals.user, null);
-    const info = await userService.getDetailVoucher(voucherCode);
+    const info = await userService.getDetailVoucher(code);
 
     res.json({
         status: 'success',

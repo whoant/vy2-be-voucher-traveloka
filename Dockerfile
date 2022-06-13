@@ -7,7 +7,7 @@ COPY yarn.lock ./
 ARG NODE_ENV=development
 
 RUN yarn install
-
+RUN npm install pm2 -g
 COPY . .
+CMD ["pm2-runtime", "process.yml"]
 
-CMD ["yarn", "start"]

@@ -38,3 +38,31 @@ exports.getCountGiftCards = catchAsync(async (req, res, next) => {
         }
     });
 });
+
+exports.getDetailGiftCard = catchAsync(async (req, res, next) => {
+    const { type, code } = req.query;
+    const partner = new PartnerService(res.locals.partner, type);
+    const info = await partner.getDetailGift(code);
+
+    res.json({
+        status: 'success',
+        message: 'Lấy thông tin thành công !',
+        data: {
+            info
+        }
+    });
+});
+
+exports.getAnalyzeGiftCard = catchAsync(async (req, res, next) => {
+    const { type, code } = req.query;
+    const partner = new PartnerService(res.locals.partner, type);
+    const analyze = await partner.getAnalyzeGiftCard(code);
+
+    res.json({
+        status: 'success',
+        message: 'Lấy thông tin thành công !',
+        data: {
+            ...analyze
+        }
+    });
+});

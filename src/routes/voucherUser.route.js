@@ -26,4 +26,6 @@ router.post('/check-buy', authMiddleware.selectUser('USER'), voucherUserControll
 
 router.post('/buy', authMiddleware.selectUser('USER'), voucherUserController.postBuyVoucher);
 
+router.get('/detail', authMiddleware.selectUser('USER'), voucherUserController.getDetailVoucher);
+
 module.exports = router;

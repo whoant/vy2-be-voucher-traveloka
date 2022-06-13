@@ -123,3 +123,17 @@ exports.getPointAvailable = catchAsync(async (req, res, next) => {
         message: 'Lấy điểm thành công !'
     })
 });
+
+exports.getDetailGift = catchAsync(async (req, res, next) => {
+    const { voucherCode } = req.query;
+    const userService = new UserService(res.locals.user, null);
+    const info = await userService.getDetailGift(voucherCode);
+
+    res.json({
+        status: 'success',
+        message: 'Lấy thông tin thành công !',
+        data: {
+            info
+        }
+    });
+});

@@ -142,3 +142,17 @@ exports.postBuyVoucher = catchAsync(async (req, res, next) => {
         }
     });
 });
+
+exports.getDetailVoucher = catchAsync(async (req, res, next) => {
+    const { voucherCode } = req.query;
+    const userService = new UserService(res.locals.user, null);
+    const info = await userService.getDetailVoucher(voucherCode);
+
+    res.json({
+        status: 'success',
+        message: 'Lấy thông tin thành công !',
+        data: {
+            info
+        }
+    });
+});

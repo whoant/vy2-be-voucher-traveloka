@@ -159,20 +159,35 @@ class UserService {
                 attributes: ['threshold', 'discount', 'maxAmount']
             },
             attributes: {
-                exclude: ['createdAt', 'updatedAt', 'partnerId', 'id', 'PartnerTypeVoucherId', 'amount', 'limitUse']
+                exclude: ['createdAt', 'updatedAt', 'partnerId', 'PartnerTypeVoucherId', 'amount']
             },
             raw: true,
             nest: true
         });
 
-        return vouchers.map(voucher => {
+        const countUserVoucher = await Promise.all(vouchers.map(voucher => {
+            return UserVoucher.count({
+                where: {
+                    voucherId: voucher.id,
+                    state: STATE_PROMOTION.DONE
+                }
+            });
+        }));
+
+        const res = [];
+
+        vouchers.forEach((voucher, index) => {
+            if (countUserVoucher[index] >= voucher.limitUse) return;
+
             const description = combineDescriptionVoucher(voucher.Condition);
             delete voucher.Condition;
-            return {
+            res.push({
                 ...voucher,
                 description,
-            }
-        });
+            });
+        })
+
+        return res;
     }
 
     async preOrder(orderInfo) {
@@ -268,6 +283,14 @@ class UserService {
     }
 
     async checkVoucherCondition(voucher, amount) {
+        const partnerTypeVoucher = this.partnerTypeVoucher;
+        const orderId = this.generateOrderId(voucher.voucherCode, partnerTypeVoucher.getId());
+        const isExists = await clientRedis.exists(orderId);
+
+        if (isExists) {
+            throw new AppError("Voucher này đang được sử dụng !")
+        }
+
         const condition = await voucher.getCondition();
 
         return DiscountHelper(amount, condition);
@@ -503,7 +526,7 @@ class UserService {
                 partnerTypeId: this.partnerTypeVoucher.getId()
             },
             attributes: {
-                exclude: ['createdAt', 'updatedAt', 'partnerTypeId', 'id', 'limitUse', 'pointExchange']
+                exclude: ['createdAt', 'updatedAt', 'partnerTypeId', 'id', 'pointExchange']
             },
             raw: true,
             nest: true
@@ -599,7 +622,7 @@ class UserService {
         const { appId } = this.user;
         const profileService = SwitchProfile(appId, token);
         const pointCurrent = await profileService.getPoint();
-        
+
         const giftCardItem = await GiftCard.findOne({
             where: {
                 giftCardCode
@@ -664,7 +687,16 @@ class UserService {
     }
 
     async checkGiftCardCondition(code, amount) {
+        const partnerTypeVoucher = this.partnerTypeVoucher;
         const giftCard = await this.checkGiftCardValid(code);
+
+        const orderId = this.generateOrderId(code, partnerTypeVoucher.getId());
+        const isExists = await clientRedis.exists(orderId);
+
+        if (isExists) {
+            throw new AppError("Thẻ quà tặng này đang được áp mã cho giao dịch khác !")
+        }
+
         const amountDiscount = DiscountHelper(amount, giftCard);
 
         return {

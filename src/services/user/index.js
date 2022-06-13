@@ -159,20 +159,35 @@ class UserService {
                 attributes: ['threshold', 'discount', 'maxAmount']
             },
             attributes: {
-                exclude: ['createdAt', 'updatedAt', 'partnerId', 'id', 'PartnerTypeVoucherId', 'amount', 'limitUse']
+                exclude: ['createdAt', 'updatedAt', 'partnerId', 'PartnerTypeVoucherId', 'amount']
             },
             raw: true,
             nest: true
         });
 
-        return vouchers.map(voucher => {
+        const countUserVoucher = await Promise.all(vouchers.map(voucher => {
+            return UserVoucher.count({
+                where: {
+                    voucherId: voucher.id,
+                    state: STATE_PROMOTION.DONE
+                }
+            });
+        }));
+
+        const res = [];
+
+        vouchers.forEach((voucher, index) => {
+            if (countUserVoucher[index] >= voucher.limitUse) return;
+
             const description = combineDescriptionVoucher(voucher.Condition);
             delete voucher.Condition;
-            return {
+            res.push({
                 ...voucher,
                 description,
-            }
-        });
+            });
+        })
+
+        return res;
     }
 
     async preOrder(orderInfo) {
@@ -503,7 +518,7 @@ class UserService {
                 partnerTypeId: this.partnerTypeVoucher.getId()
             },
             attributes: {
-                exclude: ['createdAt', 'updatedAt', 'partnerTypeId', 'id', 'limitUse', 'pointExchange']
+                exclude: ['createdAt', 'updatedAt', 'partnerTypeId', 'id', 'pointExchange']
             },
             raw: true,
             nest: true
@@ -599,7 +614,7 @@ class UserService {
         const { appId } = this.user;
         const profileService = SwitchProfile(appId, token);
         const pointCurrent = await profileService.getPoint();
-        
+
         const giftCardItem = await GiftCard.findOne({
             where: {
                 giftCardCode

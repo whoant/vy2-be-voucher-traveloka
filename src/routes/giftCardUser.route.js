@@ -8,7 +8,7 @@ const paramMiddleware = require("../middlewares/param.middleware");
 
 router.get('/owner', authMiddleware.selectUser('USER'), giftCardUserController.getGiftOwned);
 
-router.get('/eligible', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, giftCardUserController.getGiftrEligible);
+router.get('/eligible', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, giftCardUserController.getGiftEligible);
 
 router.get('/check-condition', authMiddleware.selectUser('USER'), paramMiddleware.paramTypeVoucher, giftCardUserController.checkCondition);
 

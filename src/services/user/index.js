@@ -687,7 +687,16 @@ class UserService {
     }
 
     async checkGiftCardCondition(code, amount) {
+        const partnerTypeVoucher = this.partnerTypeVoucher;
         const giftCard = await this.checkGiftCardValid(code);
+
+        const orderId = this.generateOrderId(code, partnerTypeVoucher.getId());
+        const isExists = await clientRedis.exists(orderId);
+
+        if (isExists) {
+            throw new AppError("Thẻ quà tặng này đang được áp mã cho giao dịch khác !")
+        }
+
         const amountDiscount = DiscountHelper(amount, giftCard);
 
         return {

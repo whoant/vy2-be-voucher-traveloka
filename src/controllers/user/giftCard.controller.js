@@ -15,7 +15,7 @@ exports.getGiftOwned = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.getGiftrEligible = catchAsync(async (req, res, next) => {
+exports.getGiftEligible = catchAsync(async (req, res, next) => {
     const { partnerTypeVoucher } = res.locals;
     const userService = new UserService(res.locals.user, partnerTypeVoucher);
     const giftCards = await userService.getGiftCardEligible();

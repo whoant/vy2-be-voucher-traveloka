@@ -17,7 +17,7 @@ class Profile3 {
         }
     }
 
-    async updatePoint(point, appId) {
+    async updatePoint(point, appId, userId = "") {
         try {
             const { data } = await axios.post("https://gxyvy04g01backend-production.up.railway.app/Customer/subtractPoint", {
                 TOKEN: this.accessToken,

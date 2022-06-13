@@ -623,18 +623,19 @@ class UserService {
 
         if (countUserGiftCard > giftCardItem.limitUse) throw new AppError("Thẻ quà tặng này đã hết lượng", 400);
 
-        await UserGiftCard.create({
-            userId: this.getUserId(),
-            giftCardId: giftCardItem.id
-        });
-
         const getTypeVoucher = await TypeVoucher.findOne({
             where: {
                 id: giftCardItem.PartnerTypeVoucher.typeVoucherId
             }
         });
+        await profileService.updatePoint(giftCardItem.pointExchange, getTypeVoucher.type, this.user.userId);
 
-        await profileService.updatePoint(giftCardItem.pointExchange, getTypeVoucher.type);
+        await UserGiftCard.create({
+            userId: this.getUserId(),
+            giftCardId: giftCardItem.id
+        });
+
+
     }
 
     async checkGiftCardValid(code) {

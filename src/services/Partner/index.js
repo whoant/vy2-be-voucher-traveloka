@@ -283,6 +283,12 @@ class PartnerService {
         const GiftCard = new GiftCardService(partnerVoucher);
         const gift = await GiftCard.getGiftFromCode(code);
 
+        const totalUserGiftCard = await UserGiftCard.count({
+            where: {
+                giftCardId: gift.id,
+            }
+        });
+
         const userGiftCards = await this.getUserGiftDone(gift, ['amountAfter']);
 
         const totalAmount = userGiftCards.reduce((previousValue, currentValue) => {
@@ -291,8 +297,8 @@ class PartnerService {
 
         return {
             totalAmount,
-            totalUse: userGiftCards.length,
-            totalBuy: 0
+            totalUsed: userGiftCards.length,
+            totalExchange: totalUserGiftCard
         };
     }
 

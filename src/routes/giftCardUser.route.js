@@ -24,4 +24,6 @@ router.post('/exchange', authMiddleware.selectUser('USER'), giftCardUserControll
 
 router.get('/point', authMiddleware.selectUser('USER'), giftCardUserController.getPointAvailable);
 
+router.get('/detail', authMiddleware.selectUser('USER'), giftCardUserController.getDetailGift);
+
 module.exports = router;

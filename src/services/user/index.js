@@ -806,8 +806,6 @@ class UserService {
             raw: true
         });
 
-        console.log('-> 💩 userGiftCards', userGiftCards);
-
         const listGiftCards = await GiftCard.findAll({
             where: {
                 id: {
@@ -849,6 +847,26 @@ class UserService {
         })
 
         return giftCards;
+    }
+
+    async getDetailVoucher(code) {
+        const voucher = await Voucher.findOne({
+            where: {
+                voucherCode: code
+            }
+        });
+
+        return voucher;
+    }
+
+    async getDetailGift(code) {
+        const giftCard = await GiftCard.findOne({
+            where: {
+                giftCardCode: code
+            },
+        });
+
+        return giftCard;
     }
 
 }

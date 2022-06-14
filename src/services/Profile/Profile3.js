@@ -30,6 +30,26 @@ class Profile3 {
         });
     }
 
+    order(productName, price, point, partnerId, userId) {
+        return axios.post('https://profile.vinhphancommunity.xyz/api/orders', {
+            "reward": point,
+            "details": [
+                {
+                    productName,
+                    price,
+                    quality: 1,
+                    link: "https://voucher.votuan.xyz/"
+                }
+            ],
+            partnerId,
+            userId
+        }, {
+            headers: {
+                service: 'VOUCHER'
+            }
+        });
+    }
+
 }
 
 module.exports = Profile3;

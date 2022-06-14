@@ -468,6 +468,7 @@ class UserService {
             email: this.user.email,
             amount: voucher.amount,
             title: voucher.title,
+            partnerId: this.partnerTypeVoucher.partnerVoucher.partnerId,
             description: combineDescriptionVoucher(voucher.Condition)
         }), {
             EX: 60 * 5
@@ -482,11 +483,17 @@ class UserService {
                 const isExists = await clientRedis.exists(transactionId);
                 if (!isExists) throw new AppError("Giao dịch này không tồn tại !", 400);
 
-                const { amount, title, voucherId, userId } = JSON.parse(await clientRedis.get(transactionId));
+                const {
+                    amount,
+                    title,
+                    voucherId,
+                    userId,
+                    partnerId
+                } = JSON.parse(await clientRedis.get(transactionId));
                 const paymentId = await Paypal.createOrder(title, VNDtoUSD(amount));
 
                 const ttl = await clientRedis.ttl(transactionId);
-                await clientRedis.set(paymentId, JSON.stringify({ amount, title, voucherId, userId }), {
+                await clientRedis.set(paymentId, JSON.stringify({ amount, title, voucherId, userId, partnerId }), {
                     EX: ttl
                 });
 
@@ -649,14 +656,12 @@ class UserService {
                 id: giftCardItem.PartnerTypeVoucher.typeVoucherId
             }
         });
-        await profileService.updatePoint(giftCardItem.pointExchange, getTypeVoucher.type, this.user.userId);
+        //await profileService.updatePoint(giftCardItem.pointExchange, getTypeVoucher.type, this.user.userId);
 
         await UserGiftCard.create({
             userId: this.getUserId(),
             giftCardId: giftCardItem.id
         });
-
-
     }
 
     async checkGiftCardValid(code) {

@@ -80,3 +80,16 @@ exports.getCountVouchers = catchAsync(async (req, res, next) => {
         }
     });
 });
+
+exports.getAnalyzeData = catchAsync(async (req, res, next) => {
+    const partner = new PartnerService(res.locals.partner, '');
+    const chart = await partner.getAnalyzeData();
+
+    res.json({
+        status: 'success',
+        message: 'Lấy dữ liệu thành công !',
+        data: {
+            ...chart
+        }
+    });
+});

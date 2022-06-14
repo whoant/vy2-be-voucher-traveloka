@@ -13,6 +13,8 @@ const { Op } = require("sequelize");
 const { STATE_PROMOTION } = require("../../constants");
 const VoucherService = require("../voucher");
 const GiftCardService = require("../GiftCard");
+const _ = require('lodash');
+const moment = require('moment');
 
 class PartnerService {
 
@@ -333,6 +335,67 @@ class PartnerService {
             totalExchange: totalUserGiftCard
         };
     }
+
+    async getAnalyzeData() {
+        const listVouchers = (await Voucher.findAll({
+            where: {
+                amount: {
+                    [Op.gt]: 0
+                },
+            },
+            raw: true,
+            nest: true
+        })).map(voucher => {
+            return {
+                ...voucher,
+                voucherId: voucher.id
+            };
+        });
+
+        const listUserVouchers = (await UserVoucher.findAll({
+            where: {
+                voucherId: {
+                    [Op.in]: listVouchers.map((voucher) => voucher.id)
+                }
+            },
+            raw: true,
+            nest: true
+        })).map(userVoucher => {
+            return {
+                ...userVoucher,
+                startedAt: userVoucher.effectiveAt
+            }
+        });
+
+        const result = listUserVouchers.map(a => ({
+            ...a,
+            ...listVouchers.find(b => b.voucherId === a.voucherId) // _.find(array2, 'skuId') <-- or with lodash
+        }));
+
+        const groupedByMonth = _.groupBy(result, function (item) {
+            return moment(item.startedAt).day() + 1;
+        });
+
+        const months = Object.keys(groupedByMonth);
+        const res = {
+            months,
+            series: [{
+                name: "Doanh thu",
+                data: []
+            }]
+        };
+
+        months.forEach(month => {
+            const temp = groupedByMonth[month].reduce((previousValue, currentValue) => {
+                return previousValue + Number(currentValue.amount);
+            }, 0);
+            res.series[0].data.push(temp);
+        });
+
+        return res
+
+    }
+
 
 }
 

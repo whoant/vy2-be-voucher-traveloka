@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: be-voucher-traveloka
+  namespace: traveloka-app
+  labels:
+    app: be-voucher-traveloka
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: be-voucher-traveloka
+      labels:
+        app: be-voucher-traveloka
+    spec:
+      containers:
+        - name: be-voucher-traveloka
+          image: ghcr.io/whoant/vy2-be-voucher-traveloka:VERSION
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+  selector:
+    matchLabels:
+      app: be-voucher-traveloka

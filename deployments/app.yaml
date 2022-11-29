@@ -17,6 +17,20 @@ spec:
         - name: be-voucher-traveloka
           image: ghcr.io/whoant/vy2-be-voucher-traveloka:VERSION
           imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          resources:
+            limits:
+              memory: "400Mi"
+              cpu: "400m"
+            requests:
+              memory: "200Mi"
+              cpu: "200m"
+          envFrom:
+            - secretRef:
+                { name: secret.be-voucher-traveloka }
+            - configMapRef:
+                { name: configmap.be-voucher-traveloka }
       restartPolicy: Always
   selector:
     matchLabels:

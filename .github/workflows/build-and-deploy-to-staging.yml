@@ -43,5 +43,5 @@ jobs:
           base64-kube-config: ${{ secrets.KUBE_CONFIG }}
       - name: Run deploy app
         run: |
-          chmod +x ./deployments/staging/update_version_and_deploy.sh
-          ./deployments/staging/update_version_and_deploy.sh ${{ env.IMAGE_VERSION }}
+          chmod +x ./deployments/update_version_and_deploy.sh
+          ./deployments/update_version_and_deploy.sh ${{ env.IMAGE_VERSION }}

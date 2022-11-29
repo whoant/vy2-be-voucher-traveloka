@@ -13,6 +13,8 @@ spec:
       labels:
         app: be-voucher-traveloka
     spec:
+      nodeSelector:
+        ram: high
       containers:
         - name: be-voucher-traveloka
           image: ghcr.io/whoant/vy2-be-voucher-traveloka:VERSION

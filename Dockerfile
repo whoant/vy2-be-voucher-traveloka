@@ -1,4 +1,4 @@
-FROM node:16.14.2-alpine3.15
+FROM node:14.15.4-alpine3.12
 
 RUN mkdir -p /opt/app
 ARG NODE_ENV=production
@@ -15,4 +15,3 @@ RUN npm install && npm cache clean --force
 WORKDIR /opt/app
 COPY ./src/ /opt/app
 CMD ["node", "app.js"]
-

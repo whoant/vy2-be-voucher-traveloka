@@ -6,6 +6,7 @@ module.exports = {
         setupNodeEvents(on, config) {
             // implement node event listeners here
         },
-        baseUrl: 'http://localhost:8080',
+        baseUrl: 'http://194.233.92.2:30002',
+        failOnStatusCode: false
     },
 };

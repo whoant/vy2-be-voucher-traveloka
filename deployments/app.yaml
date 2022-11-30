@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: be-voucher-traveloka
+  namespace: traveloka-app
+  labels:
+    app: be-voucher-traveloka
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: be-voucher-traveloka
+      labels:
+        app: be-voucher-traveloka
+    spec:
+      nodeSelector:
+        ram: high
+      containers:
+        - name: be-voucher-traveloka
+          image: ghcr.io/whoant/vy2-be-voucher-traveloka:VERSION
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          resources:
+            limits:
+              memory: "400Mi"
+              cpu: "400m"
+            requests:
+              memory: "200Mi"
+              cpu: "200m"
+          envFrom:
+            - secretRef:
+                { name: secret.be-voucher-traveloka }
+            - configMapRef:
+                { name: configmap.be-voucher-traveloka }
+      restartPolicy: Always
+  selector:
+    matchLabels:
+      app: be-voucher-traveloka

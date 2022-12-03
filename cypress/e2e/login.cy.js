@@ -10,7 +10,7 @@ describe('API create user', function () {
         })
     });
 
-    it('Create user with email exists', () => {
+    it('Return error if create user with email exists', () => {
 
         cy.request({
             method: 'POST',

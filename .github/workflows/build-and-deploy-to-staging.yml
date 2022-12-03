@@ -3,7 +3,7 @@ name: Build, publish a Docker image, after that auto deploy to K8s
 on:
   push:
     branches:
-      - staging
+      - main
 
 env:
   REGISTRY: ghcr.io

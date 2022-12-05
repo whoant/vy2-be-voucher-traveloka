@@ -19,9 +19,9 @@ jobs:
       #        with:
       #          node-version: 16
       - name: Cypress install
-        uses: cypress-io/github-action@v4.2.2
+        uses: cypress-io/github-action@v4
         with:
-          start: npm --version
+          runTests: false
       - run: yarn cypress info
       - run: node --version
       - run: node -p 'os.cpus()'

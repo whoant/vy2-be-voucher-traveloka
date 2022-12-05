@@ -21,7 +21,6 @@ jobs:
       - name: Cypress install
         uses: cypress-io/github-action@v4.2.2
         with:
-          install: false
           start: npm --version
       - run: yarn cypress info
       - run: node --version

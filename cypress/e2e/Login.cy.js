@@ -42,12 +42,12 @@ describe('Đăng nhập sử dụng token', function() {
             expect(body.message).to.eq('Thêm app_id vào header với value theo nhóm: vy01, vy02, vy03, vy04. Ví dụ: app_id: vy03');
         })
     });
-
-    beforeEach(() => {
-        cy.request('POST', 'api/v1/user/auth/login', { email: 'tuan@gmail.com' })
-          .its('data')
-          .as('currentUser')
-    })
+    //
+    // beforeEach(() => {
+    //     cy.request('POST', 'api/v1/user/auth/login', { email: 'tuan@gmail.com' })
+    //       .its('data')
+    //       .as('currentUser')
+    // })
 
     it('Đăng nhập với token không hợp lệ', () => {
         cy.request({
@@ -65,10 +65,9 @@ describe('Đăng nhập sử dụng token', function() {
     });
 
     it('Đăng nhập với token hợp lệ', () => {
-        const { token } = this.currentUser;
         cy.request({
             method: 'GET',
-            url: `api/v1/user/auth/login-token?=${token}`,
+            url: `api/v1/user/auth/login-token?=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNjcwMjg1ODM0LCJleHAiOjE2NzgwNjE4MzR9.4xjlPR9_8QztEJpc10kyjFrZ_p-cbi1vh3__y6TlK-w`,
             headers: {
                 'app_id': 'vy03'
             },

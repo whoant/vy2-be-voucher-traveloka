@@ -6,7 +6,7 @@ module.exports = {
         setupNodeEvents(on, config) {
             // implement node event listeners here
         },
-        baseUrl: 'http://194.233.92.2:30002',
+        baseUrl: 'https://api-voucher.votuan.xyz',
         failOnStatusCode: false
     },
 };

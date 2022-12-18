@@ -4,9 +4,9 @@ module.exports = {
         DONE: 'DONE'
     },
     SERVICE_PROFILE: {
-        "APART": "VILLA-APARTMENT",
+        "APART": "APART",
         "FLIGHT": "FLIGHT",
-        "AIRPORT": "AIRPORT-PICKLES",
+        "AIRPORT": "AIRPORT",
         "HOTEL": "HOTEL",
         "EATS": "RESTAURANT",
         "CARRENTAL": "CAR-RENTAL",

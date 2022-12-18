@@ -1,5 +1,7 @@
+const { randomString } = require('../../src/helpers/utilities.helper');
 describe('Tạo voucher', function() {
-    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoidm92YW5ob2FuZ3R1YW4iLCJ1c2VybmFtZSI6InZvdmFuaG9hbmd0dWFuIiwiZW1haWwiOiJ2b3ZhbmhvYW5ndHVhbjQuMkBnbWFpbC5jb20iLCJzdWIiOiI0MjczRDQ0RS0xMDI0LTQ0OUQtOUQxQS0wOUQyQjlBMThGRUYiLCJ0eXBlIjoiUEFSVE5FUiIsImFwcElkIjoidnkwMyIsInNlcnZpY2VzIjpbIlZJTExBLUFQQVJUTUVOVCIsIkZMSUdIVCIsIkNBUi1SRU5UQUwiLCJBSVJQT1JULVBJQ0tMRVMiLCJIT1RFTCIsIlRPVVIiLCJSRVNUQVVSQU5UIiwiVk9VQ0hFUiIsIlNBVklORy1DT01CTyJdLCJpYXQiOjE2NzEyOTg5NjksImV4cCI6MTY3OTA3NDk2OX0.nq-PPy3qakXT-nmbJKqciDZXKnPfv07oP7PMRlEgkmA';
+    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiVHXDom4iLCJ1c2VybmFtZSI6InZvdmFuaG9hbmd0dWFuMiIsImVtYWlsIjoidm92YW5ob2FuZ3R1YW4yQGdtYWlsLmNvbSIsInN1YiI6IjMzOThDNTk1LTBCNDAtNDk0Ri1BMTMwLTFGNzhFNTY5NkFFMSIsInR5cGUiOiJQQVJUTkVSIiwiYXBwSWQiOiJ2eTAzIiwic2VydmljZXMiOlsiQVBBUlQiLCJGTElHSFQiLCJDQVJSRU5UQUwiLCJBSVJQT1JUIiwiSE9URUwiLCJYUEVSSUVOQ0UiLCJFQVRTIiwiVk9VQ0hFUiIsIkNPTUJPIl0sImlhdCI6MTY3MTM0ODc1OSwiZXhwIjoxNjc5MTI0NzU5fQ.ktoeS9uU02f4CynvqkLwQuT7C66c5qMCcjmBrvEPJ_I';
+
     it('Tạo voucher hợp lệ', () => {
         cy.request({
             method: 'POST',
@@ -8,7 +10,7 @@ describe('Tạo voucher', function() {
                 "title": "Sale cuối năm sập sàn",
                 "content": "Nhân dịp cuối năm sale sập sàn",
                 "limitUse": 10,
-                "voucherCode": "END_YEAR_HOTEL",
+                "voucherCode": `${randomString(20)}`,
                 "amount": 50000,
                 "effectiveAt": "2022-05-01",
                 "expirationAt": "2022-05-30",
@@ -37,7 +39,7 @@ describe('Tạo voucher', function() {
                 "title": "",
                 "content": "Nhân dịp cuối năm sale sập sàn",
                 "limitUse": 10,
-                "voucherCode": "END_YEAR_HOTEL",
+                "voucherCode": `${randomString(20)}`,
                 "amount": 50000,
                 "effectiveAt": "2022-05-01",
                 "expirationAt": "2022-05-30",
@@ -66,7 +68,7 @@ describe('Tạo voucher', function() {
                 "title": "12323",
                 "content": "",
                 "limitUse": 10,
-                "voucherCode": "END_YEAR_HOTEL",
+                "voucherCode": `${randomString(20)}`,
                 "amount": 50000,
                 "effectiveAt": "2022-05-01",
                 "expirationAt": "2022-05-30",
@@ -95,7 +97,7 @@ describe('Tạo voucher', function() {
                 "title": "Sale cuối năm sập sàn",
                 "content": "Nhân dịp cuối năm sale sập sàn",
                 "limitUse": -1,
-                "voucherCode": "END_YEAR_HOTEL",
+                "voucherCode": `${randomString(20)}`,
                 "amount": 50000,
                 "effectiveAt": "2022-05-01",
                 "expirationAt": "2022-05-30",
@@ -124,7 +126,7 @@ describe('Tạo voucher', function() {
                 "title": "Sale cuối năm sập sàn",
                 "content": "Nhân dịp cuối năm sale sập sàn",
                 "limitUse": 10,
-                "voucherCode": "END_YEAR_HOTEL",
+                "voucherCode": `i14DNZbqsbl1kveGWaeE`,
                 "amount": 50000,
                 "effectiveAt": "2022-05-01",
                 "expirationAt": "2022-05-30",
@@ -153,7 +155,7 @@ describe('Tạo voucher', function() {
                 "title": "Sale cuối năm sập sàn",
                 "content": "Nhân dịp cuối năm sale sập sàn",
                 "limitUse": 10,
-                "voucherCode": "END_YEAR_HOTEL1",
+                "voucherCode": `${randomString(20)}`,
                 "amount": -2,
                 "effectiveAt": "2022-05-01",
                 "expirationAt": "2022-05-30",
@@ -182,7 +184,7 @@ describe('Tạo voucher', function() {
                 "title": "Sale cuối năm sập sàn",
                 "content": "Nhân dịp cuối năm sale sập sàn",
                 "limitUse": 10,
-                "voucherCode": "END_YEAR_HOTEL2",
+                "voucherCode": `${randomString(20)}`,
                 "amount": 100,
                 "effectiveAt": "05-2022-01",
                 "expirationAt": "2022-05-30",

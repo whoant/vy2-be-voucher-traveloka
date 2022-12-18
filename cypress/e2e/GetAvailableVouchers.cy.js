@@ -1,5 +1,5 @@
 describe('Lấy danh sách voucher khả dụng đ mua', function() {
-    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiVsO1IFbEg24gSG_DoG5nIFR1w6JuIiwidXNlcm5hbWUiOiJ2b3ZhbmhvYW5ndHVhbjEiLCJlbWFpbCI6InZvdmFuaG9hbmd0dWFuMUBnbWFpbC5jb20iLCJzdWIiOiIxQUMyQjgzNi03Q0UyLTQ4OEMtQjg2MC1GRUM2M0MwQzAwOUIiLCJ0eXBlIjoiVVNFUiIsImFwcElkIjoidnkwMyIsImlhdCI6MTY3MTMzNDgyMywiZXhwIjoxNjc5MTEwODIzfQ.BU4FacECf2oGpJPU54t-0yhZMrSckvNAP7TG38bKOKc';
+    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiVHXDom4iLCJ1c2VybmFtZSI6InZvdmFuaG9hbmd0dWFuMyIsImVtYWlsIjoidHVhbjExMjEyQGdtYWlsLmNvbSIsInN1YiI6IjQ5MUQ0Rjk0LUM5MUItNEVFRC1BOUEwLTUxQjg3OEZGMTI4QSIsInR5cGUiOiJVU0VSIiwiYXBwSWQiOiJ2eTAzIiwiaWF0IjoxNjcxMzUwMjM3LCJleHAiOjE2NzkxMjYyMzd9.ccjxtxxBpM-c5fB4joLfey6XHVysA2nVXHJO9xlBOck';
 
     it('Danh sách voucher của dịch vụ chuyến bay', () => {
 
@@ -14,7 +14,7 @@ describe('Lấy danh sách voucher khả dụng đ mua', function() {
             expect(status).to.eq(200);
             expect(body.status).to.eq('success');
             expect(body.message).to.eq('Lấy danh sách thành công !');
-            expect(body.data.vouchers.length).to.greaterThan(0)
+            expect(body.data.vouchers.length).to.gte(0)
 
         })
     });

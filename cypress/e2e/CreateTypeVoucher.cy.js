@@ -1,12 +1,13 @@
+const { randomString } = require('../../src/helpers/utilities.helper');
 describe('Tạo loại dịch vụ voucher', function() {
 
     it('Tạo loại voucher chưa tồn tại', () => {
         cy.request({
             method: 'POST',
-            url: 'api/v1/partner/type-voucher',
+            url: 'api/v1/type-voucher',
             body: {
-                "name": "Combo tiết kiệm",
-                "type": "COMBO12"
+                "name": `Combo tiết kiệm ${randomString(5)}`,
+                "type": `${randomString(10)}`
             },
             failOnStatusCode: false,
 

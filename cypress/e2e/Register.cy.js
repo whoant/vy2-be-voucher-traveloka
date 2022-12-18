@@ -13,76 +13,61 @@ describe('API tạo user', function() {
     it('Tạo user với email đã tồn tại', () => {
         cy.request({
             method: 'POST',
-            url: 'api/v1/user/auth/register',
+            url: 'http://94.100.26.30:3010/api/auth/signup',
             headers: {
-                app_id: 'vy02'
+                app_id: 'vy03'
             },
             body: {
-                "userId": "1",
-                "email": "tuan@gmail.com"
+                "userId": "",
+                "email": "tuan11212@gmail.com",
+                "username": "vovanhoangtuan3",
+                "name": "Tuân",
+                "gender": false,
+                "dob": "2001-12-17T17:00:00.000Z",
+                "phone": "0703348851",
+                "address": "1232323",
+                "type": "USER",
+                "reward": 0,
+                "services": [],
+                "companyName": "",
+                "access_token": "",
+                "password": "vovanhoangtuan3"
             },
             failOnStatusCode: false
         }).should(({ status, body }) => {
-            expect(status).to.eq(400)
-            expect(body.status).to.eq('fail')
-            expect(body.message).to.eq('Email đã tồn tại !')
+            expect(status).to.eq(409)
+            expect(body.message).to.eq('USER_EXISTED')
         })
     });
 
     it('Tạo user với email không hợp lệ', function() {
         cy.request({
             method: 'POST',
-            url: 'api/v1/user/auth/register',
+            url: 'http://94.100.26.30:3010/api/auth/signup',
             headers: {
-                app_id: 'vy02'
+                app_id: 'vy03'
             },
             body: {
-                "userId": "1",
-                "email": "tuan"
+                "userId": "",
+                "email": "tuan11212",
+                "username": "vovanhoangtuan3",
+                "name": "Tuân",
+                "gender": false,
+                "dob": "2001-12-17T17:00:00.000Z",
+                "phone": "0703348851",
+                "address": "1232323",
+                "type": "USER",
+                "reward": 0,
+                "services": [],
+                "companyName": "",
+                "access_token": "",
+                "password": "vovanhoangtuan3"
             },
             failOnStatusCode: false
         }).should(({ status, body }) => {
-            expect(status).to.eq(500)
-            expect(body.status).to.eq('error')
-            expect(body.message).to.eq('Something went very wrong !')
+            expect(status).to.eq(409)
+            expect(body.message).to.eq('USER_EXISTED')
         })
     });
 
-    it('Tạo user với userId là chữ', function() {
-        cy.request({
-            method: 'POST',
-            url: 'api/v1/user/auth/register',
-            headers: {
-                app_id: 'vy02'
-            },
-            body: {
-                "userId": "abc",
-                "email": "tuan123@gmail.com"
-            },
-            failOnStatusCode: false
-        }).should(({ status, body }) => {
-            expect(status).to.eq(200)
-            expect(body.status).to.eq('success')
-            expect(body.message).to.eq('Tạo user thành công !')
-        })
-    });
-
-    it('Tạo user với userId là có ký tự đăc biệt', function() {
-        cy.request({
-            method: 'POST',
-            url: 'api/v1/user/auth/register',
-            headers: {
-                app_id: 'vy02'
-            },
-            body: {
-                "userId": "abc!!!",
-                "email": "tuan1233323@gmail.com"
-            },
-            failOnStatusCode: false
-        }).should(({ status, body }) => {
-            expect(status).to.eq(500)
-            expect(body.status).to.eq('error')
-            expect(body.message).to.eq('Something went very wrong !')
-        })
-    });
 });

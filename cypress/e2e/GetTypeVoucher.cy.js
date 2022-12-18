@@ -5,7 +5,6 @@ describe('Lấy dịch vụ voucher', function() {
             method: 'GET',
             url: 'api/v1/type-voucher',
             failOnStatusCode: false,
-
         }).should(({ status, body }) => {
             expect(status).to.eq(200);
             expect(body.status).to.eq('success');

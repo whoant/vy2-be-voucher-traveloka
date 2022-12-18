@@ -17,15 +17,26 @@ module.exports = (sequelize) => {
             type: DataTypes.BIGINT,
             allowNull: false,
             validate: {
-                isInt: true
+                isInt: {
+                    args: true,
+                    msg: 'Số tiền không hợp lệ !'
+                }
             }
         },
         amountAfter: {
             type: DataTypes.BIGINT,
             allowNull: false,
             validate: {
-                isInt: true
+                isInt: {
+                    args: true,
+                    msg: 'Số tiền sau khi giảm không hợp lệ !'
+                }
             }
         },
+        usedAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW
+        }
     });
 };

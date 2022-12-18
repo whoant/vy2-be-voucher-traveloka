@@ -12,6 +12,8 @@ const DetailUserVoucherModel = require('./detailUserVoucher.model');
 const GiftCardModel = require('./giftCard.model');
 const UserGiftCardModel = require('./userGiftCard.model');
 const DetailUserGiftCardModel = require('./detailUserGiftCard.model');
+const PartnerTypeVoucherModel = require('./partnerTypeVoucher.model');
+const TypeVoucherModel = require('./typeVoucher.model');
 
 const sequelize = new Sequelize(DB_URI);
 
@@ -26,14 +28,27 @@ const DetailUserVoucher = DetailUserVoucherModel(sequelize);
 const GiftCard = GiftCardModel(sequelize);
 const UserGiftCard = UserGiftCardModel(sequelize);
 const DetailUserGiftCard = DetailUserGiftCardModel(sequelize);
+const PartnerTypeVoucher = PartnerTypeVoucherModel(sequelize);
+const TypeVoucher = TypeVoucherModel(sequelize);
 
-
-Partner.hasMany(Voucher, {
-    foreignKey: 'partnerId'
+Partner.belongsToMany(TypeVoucher, {
+    through: PartnerTypeVoucher,
+    foreignKey: 'partnerId',
+    otherKey: 'typeVoucherId'
 });
 
-Voucher.belongsTo(Partner, {
-    foreignKey: 'partnerId'
+TypeVoucher.belongsToMany(Partner, {
+    through: PartnerTypeVoucher,
+    foreignKey: 'typeVoucherId',
+    otherKey: 'partnerId'
+});
+
+PartnerTypeVoucher.hasMany(Voucher, {
+    foreignKey: 'PartnerTypeVoucherId',
+});
+
+Voucher.belongsTo(PartnerTypeVoucher, {
+    foreignKey: 'PartnerTypeVoucherId',
 });
 
 Voucher.hasOne(Condition, {
@@ -72,12 +87,12 @@ DetailUserVoucher.belongsTo(UserVoucher, {
     foreignKey: 'userVoucherId'
 });
 
-Partner.hasMany(GiftCard, {
-    foreignKey: 'partnerId'
+PartnerTypeVoucher.hasMany(GiftCard, {
+    foreignKey: 'partnerTypeId'
 });
 
-GiftCard.belongsTo(Partner, {
-    foreignKey: 'partnerId'
+GiftCard.belongsTo(PartnerTypeVoucher, {
+    foreignKey: 'partnerTypeId'
 });
 
 User.belongsToMany(GiftCard, {
@@ -112,5 +127,7 @@ module.exports = {
     GiftCard,
     UserGiftCard,
     DetailUserGiftCard,
+    PartnerTypeVoucher,
+    TypeVoucher,
     sequelize
 };

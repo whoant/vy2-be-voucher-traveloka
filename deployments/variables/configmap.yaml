@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap.be-voucher-traveloka
+  namespace: traveloka-app
+data:
+  PAYPAL_MODE: sandbox

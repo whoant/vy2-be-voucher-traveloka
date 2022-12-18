@@ -1,7 +1,8 @@
 const { Sequelize, DataTypes } = require('sequelize');
+const { compareDate } = require("../helpers/utilities.helper");
 
 module.exports = (sequelize) => {
-    return sequelize.define('Voucher', {
+    const Voucher = sequelize.define('Voucher', {
         id: {
             type: DataTypes.UUID,
             allowNull: false,
@@ -20,7 +21,10 @@ module.exports = (sequelize) => {
             type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
-                isInt: true
+                isInt: {
+                    args: true,
+                    msg: 'Số người sử dụng không hợp lệ !'
+                }
             }
         },
         effectiveAt: {
@@ -31,20 +35,23 @@ module.exports = (sequelize) => {
         voucherCode: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true
-        },
-        limitDay: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            validate: {
-                isInt: true
+            unique: {
+                args: true,
+                msg: 'Mã voucher này đã tồn tại !'
             }
+        },
+        imageUrl: {
+            type: DataTypes.STRING,
         },
         amount: {
             type: DataTypes.BIGINT,
             allowNull: false,
+            defaultValue: 0,
             validate: {
-                isInt: true
+                isInt: {
+                    args: true,
+                    msg: 'Số tiền không hợp lệ !'
+                }
             }
         },
         expirationAt: {
@@ -57,6 +64,20 @@ module.exports = (sequelize) => {
                 unique: true,
                 fields: ["voucherCode"]
             }
-        ]
+        ],
+        hooks: {
+            beforeCreate(attributes, options) {
+                const { effectiveAt, expirationAt } = attributes.dataValues;
+                if (!compareDate(effectiveAt, expirationAt)) throw new Error('Ngày hết hiệu lực phải lớn hơn ngày bắt đầu !');
+            }
+        },
+
     });
+
+    Voucher.prototype.isBuy = function () {
+
+        return Number(this.amount) > 0;
+    }
+
+    return Voucher;
 };

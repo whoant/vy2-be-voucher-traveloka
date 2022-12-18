@@ -8,12 +8,9 @@ module.exports = (sequelize) => {
             primaryKey: true,
             defaultValue: Sequelize.UUIDV4,
         },
-        account_number: {
+        transactionId: {
             type: DataTypes.STRING,
-            allowNull: false,
-            validate: {
-                isCreditCard: true
-            }
+            unique: true
         }
     });
 };

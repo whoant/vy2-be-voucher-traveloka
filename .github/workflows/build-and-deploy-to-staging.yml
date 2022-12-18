@@ -3,7 +3,7 @@ name: Build, publish a Docker image, after that auto deploy to K8s
 on:
   push:
     branches:
-      - staging
+      - main
 
 env:
   REGISTRY: ghcr.io
@@ -34,6 +34,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
+          file: ./Dockerfile-app
           context: .
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}

@@ -7,7 +7,7 @@ class Profile3 {
 
     async getPoint() {
         try {
-            const { data } = await axios.get('https://profile.vinhphancommunity.xyz/api/users/me', {
+            const { data } = await axios.get('http://94.100.26.30:3010/api/users/me', {
                 headers: {
                     authorization: this.accessToken
                 }
@@ -20,7 +20,7 @@ class Profile3 {
     }
 
     async updatePoint(point, appId = '', userId = '') {
-        return axios.post('https://profile.vinhphancommunity.xyz/api/vouchers/reward', {
+        return axios.post('http://94.100.26.30:3010/api/vouchers/reward', {
             userId,
             reward: point
         }, {
@@ -31,7 +31,7 @@ class Profile3 {
     }
 
     order(productName, price, point, partnerId, userId) {
-        return axios.post('https://profile.vinhphancommunity.xyz/api/orders', {
+        return axios.post('http://94.100.26.30:3010/api/orders', {
             "reward": point,
             "details": [
                 {

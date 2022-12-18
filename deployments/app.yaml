@@ -23,11 +23,11 @@ spec:
             - containerPort: 3000
           resources:
             limits:
-              memory: "400Mi"
-              cpu: "400m"
+              memory: "150Mi"
+              cpu: "150m"
             requests:
-              memory: "200Mi"
-              cpu: "200m"
+              memory: "100Mi"
+              cpu: "100m"
           envFrom:
             - secretRef:
                 { name: secret.be-voucher-traveloka }

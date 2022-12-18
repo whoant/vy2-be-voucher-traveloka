@@ -4,14 +4,14 @@ module.exports = {
         DONE: 'DONE'
     },
     SERVICE_PROFILE: {
-        "VILLA-APARTMENT": "APART",
+        "APART": "APART",
         "FLIGHT": "FLIGHT",
-        "AIRPORT-PICKLES": "AIRPORT",
+        "AIRPORT": "AIRPORT",
         "HOTEL": "HOTEL",
-        "RESTAURANT": "EATS",
-        "CAR-RENTAL": "CARRENTAL",
-        "TOUR": "XPERIENCE",
-        "SAVING-COMBO": "COMBO"
+        "EATS": "RESTAURANT",
+        "CARRENTAL": "CAR-RENTAL",
+        "XPERIENCE": "TOUR",
+        "COMBO": "SAVING-COMBO"
     },
     APP_ID: {
         'vy01': 'vy01',

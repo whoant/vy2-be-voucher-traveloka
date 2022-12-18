@@ -44,9 +44,9 @@ describe('Lấy danh sách gift-card khả dụng', function() {
                 Authorization: `Bearer ${accessToken}`
             }
         }).should(({ status, body }) => {
-            expect(status).to.eq(500);
-            expect(body.status).to.eq('error');
-            expect(body.message).to.eq('Something went very wrong !');
+            expect(status).to.eq(400);
+            expect(body.status).to.eq('fail');
+            expect(body.message).to.eq('Loại voucher không tồn tại !');
         })
     });
 
